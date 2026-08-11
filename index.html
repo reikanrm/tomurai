@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>とむらい | 死後手続きチェックリスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F3ED;
+    --paper-deep:#EFEBE1;
+    --ink:#232922;
+    --green:#2B5545;
+    --green-soft:#6E8B7C;
+    --line:#DCD8CC;
+    --urgent:#9C4A2E;
+    --muted:#5C5850;
+    --white:#FFFFFF;
+    --warm:#8B6F4E;
+    --warm-paper:#F4EDE3;
+    --warm-line:#E3D5C2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:300;
+    font-size:17px;
+    line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+    line-break:strict;
+    word-break:normal;
+    overflow-wrap:break-word;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:56px 24px 120px;
+    min-height:100vh;
+  }
+  h1,h2,h3{
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:700;
+    margin:0;
+  }
+  .enso-holder{
+    display:flex;
+    justify-content:center;
+    margin-bottom:36px;
+  }
+
+  /* ---- INTRO ---- */
+  .intro-mark{
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.3em;
+    color:var(--green-soft);
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .intro h1{
+    font-size:30px;
+    text-align:center;
+    line-height:1.65;
+    color:var(--ink);
+    max-width:440px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .intro .lead{
+    text-align:center;
+    color:var(--muted);
+    font-weight:400;
+    font-size:16px;
+    margin-top:20px;
+    max-width:460px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .intro-notes{
+    margin-top:44px;
+    border-top:1px solid var(--line);
+    padding-top:28px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    font-size:15px;
+    font-weight:400;
+    color:var(--muted);
+  }
+  .intro-notes div{display:flex;gap:12px;}
+  .intro-notes .n{
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:700;
+    color:var(--green);
+    flex-shrink:0;
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--green);
+    color:var(--white);
+    border:none;
+    padding:16px 30px;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-size:16px;
+    letter-spacing:0.06em;
+    cursor:pointer;
+    border-radius:2px;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .btn:hover{opacity:0.88;}
+  .btn:active{transform:scale(0.98);}
+  .btn:focus-visible{outline:2px solid var(--green); outline-offset:3px;}
+  .btn-block{width:100%; margin-top:40px;}
+  .legal-links{
+    text-align:center;
+    margin-top:24px;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .legal-links a{color:var(--muted); text-decoration:underline; text-underline-offset:3px;}
+  .legal-links a:hover{color:var(--green);}
+  .legal-dot{margin:0 6px;}
+  .btn-ghost{
+    background:transparent;
+    color:var(--green-soft);
+    border:1px solid var(--line);
+  }
+  .btn-ghost:hover{opacity:1; border-color:var(--green-soft); color:var(--green);}
+
+  /* ---- QUESTION STEP ---- */
+  .step-index{
+    text-align:center;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--green-soft);
+    letter-spacing:0.15em;
+    margin-bottom:16px;
+  }
+  .question h2{
+    font-size:24px;
+    text-align:center;
+    line-height:1.75;
+    max-width:480px;
+    margin:0 auto 10px;
+  }
+  .question .sub{
+    text-align:center;
+    font-size:15px;
+    font-weight:400;
+    color:var(--muted);
+    margin-bottom:36px;
+  }
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .option{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:19px 22px;
+    background:var(--white);
+    border:1px solid var(--line);
+    cursor:pointer;
+    font-size:17px;
+    transition:border-color .2s ease, background .2s ease;
+    border-radius:2px;
+  }
+  .option:hover{border-color:var(--green-soft);}
+  .option.selected{
+    border-color:var(--green);
+    background:#EFF3EF;
+  }
+  .option .mark{
+    width:16px;height:16px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    flex-shrink:0;
+    position:relative;
+  }
+  .option.selected .mark{border-color:var(--green);}
+  .option.selected .mark::after{
+    content:'';
+    position:absolute;
+    inset:3px;
+    border-radius:50%;
+    background:var(--green);
+  }
+  .step-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:40px;
+  }
+  .step-nav .back{
+    font-size:15px;
+    font-weight:400;
+    color:var(--muted);
+    background:none;
+    border:none;
+    cursor:pointer;
+    letter-spacing:0.05em;
+  }
+  .step-nav .back:hover{color:var(--green);}
+
+  /* ---- INFO FORM STEP ---- */
+  .info-form{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+  .field label{
+    display:block;
+    font-size:14px;
+    color:var(--green);
+    font-weight:600;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    margin-bottom:8px;
+  }
+  .field .field-note{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+  .field input[type="date"],
+  .field input[type="datetime-local"],
+  .field input[type="text"]{
+    width:100%;
+    padding:14px 16px;
+    border:1px solid var(--line);
+    background:var(--white);
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-size:16px;
+    color:var(--ink);
+    border-radius:2px;
+  }
+  .field input:focus{outline:2px solid var(--green-soft); outline-offset:1px;}
+
+  /* ---- RESULTS ---- */
+  .results-head{text-align:center; margin-bottom:8px;}
+  .results-head h2{font-size:27px;}
+  .results-sub{
+    text-align:center;
+    color:var(--muted);
+    font-weight:400;
+    font-size:15px;
+    margin-top:12px;
+    margin-bottom:8px;
+  }
+  .progress-line{
+    text-align:center;
+    font-size:15px;
+    font-weight:600;
+    color:var(--green);
+    margin-bottom:32px;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+  }
+  .disclaimer{
+    background:var(--paper-deep);
+    border-left:3px solid var(--green-soft);
+    padding:18px 20px;
+    font-size:14.5px;
+    font-weight:400;
+    color:var(--muted);
+    margin-bottom:36px;
+    line-height:1.9;
+  }
+  .funeral-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    padding:20px 22px;
+    margin-bottom:44px;
+  }
+  .funeral-card h3{
+    font-size:15px;
+    color:var(--green);
+    font-weight:600;
+    margin-bottom:14px;
+  }
+  .funeral-row{
+    display:flex;
+    gap:14px;
+    font-size:15px;
+    padding:6px 0;
+  }
+  .funeral-row .k{
+    color:var(--muted);
+    width:110px;
+    flex-shrink:0;
+  }
+  .geo-bar{
+    text-align:center;
+    margin-bottom:36px;
+  }
+  .btn-geo{width:100%;}
+  .geo-ok{
+    display:block;
+    font-size:14px;
+    color:var(--green);
+    font-weight:500;
+  }
+  .geo-note{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:8px;
+  }
+  .category{margin-bottom:40px;}
+  .category-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:10px;
+    margin-bottom:18px;
+  }
+  .category-head h3{font-size:19px; color:var(--ink);}
+  .category-head .deadline-tag{
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-size:13px;
+    letter-spacing:0.03em;
+    padding:4px 11px;
+    border-radius:20px;
+    color:var(--white);
+    background:var(--green-soft);
+  }
+  .category-head .deadline-tag.urgent{background:var(--urgent);}
+  .category-head .deadline-tag.calm{background:var(--muted);}
+  .category-note{
+    font-size:14px;
+    color:var(--muted);
+    margin:-10px 0 16px;
+  }
+  .item{
+    display:flex;
+    gap:14px;
+    padding:18px 0;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+  .item:last-child{border-bottom:none;}
+  .item .box{
+    width:22px;height:22px;
+    border:1.5px solid var(--green-soft);
+    border-radius:3px;
+    flex-shrink:0;
+    margin-top:2px;
+    position:relative;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .item.no-check .box{visibility:hidden;}
+  .item.done .box{background:var(--green); border-color:var(--green);}
+  .item.done .box::after{
+    content:'';
+    position:absolute;
+    left:6px; top:2px;
+    width:6px; height:11px;
+    border-right:2px solid var(--white);
+    border-bottom:2px solid var(--white);
+    transform:rotate(40deg);
+  }
+  .item .body{flex:1;}
+  .item .body h4{
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:500;
+    font-size:18px;
+    margin:0 0 6px;
+    color:var(--ink);
+    transition:color .15s ease, text-decoration .15s ease;
+  }
+  .item.done .body h4{color:var(--muted); text-decoration:line-through;}
+  .item .body p{
+    font-size:15.5px;
+    font-weight:400;
+    color:var(--muted);
+    margin:0 0 10px;
+    line-height:1.8;
+  }
+  .item .deadline-small{
+    font-size:13.5px;
+    color:var(--green);
+    font-weight:600;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    margin-bottom:6px;
+    display:block;
+  }
+  .meta-list{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    font-size:14px;
+    background:var(--paper-deep);
+    padding:12px 14px;
+    border-radius:2px;
+  }
+  .meta-list .row{display:flex; gap:8px;}
+  .meta-list .row .label{
+    color:var(--green);
+    font-weight:600;
+    flex-shrink:0;
+    width:64px;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-size:12.5px;
+    padding-top:1px;
+  }
+  .meta-list .row .val{color:var(--muted); font-weight:400;}
+  .item .link{
+    display:inline-block;
+    margin-top:10px;
+    font-size:14px;
+    color:var(--green);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+  }
+  .expand{margin-top:12px;}
+  .expand .info-form{gap:14px;}
+  .expand .field label{font-size:13px; margin-bottom:6px;}
+  .expand-toggle{
+    background:none;
+    border:1px dashed var(--line);
+    color:var(--green);
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-weight:500;
+    font-size:14px;
+    padding:10px 16px;
+    border-radius:2px;
+    cursor:pointer;
+  }
+  .expand-toggle:hover{border-color:var(--green-soft);}
+  .later-toggle{margin:8px 0 40px;}
+  .btn-block{width:100%;}
+  .footer-actions{display:flex; gap:10px; margin-top:20px;}
+  .footer-actions .btn{flex:1;}
+  .signature{
+    margin-top:70px;
+    text-align:center;
+    font-size:13.5px;
+    letter-spacing:0.2em;
+    color:var(--muted);
+  }
+
+  /* ---- こころのケア入り口リンク ---- */
+  .grief-entry{
+    display:block;
+    text-align:center;
+    font-size:14.5px;
+    color:var(--warm);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    margin:20px 0 28px;
+    cursor:pointer;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+  }
+  .grief-entry:hover{opacity:0.8;}
+
+  /* ---- こころのケア画面 ---- */
+  .grief{max-width:520px; margin:0 auto;}
+  .grief-icon-holder{
+    display:flex;
+    justify-content:center;
+    margin-bottom:16px;
+  }
+  .grief-mark{
+    text-align:center;
+    font-weight:700;
+    letter-spacing:0.1em;
+    color:var(--warm);
+    font-size:15px;
+    margin-bottom:28px;
+  }
+  .grief-quote{
+    background:var(--warm-paper);
+    border:1px solid var(--warm-line);
+    border-radius:3px;
+    padding:28px 26px;
+    font-size:18px;
+    line-height:2;
+    color:var(--ink);
+    text-align:center;
+    margin-bottom:44px;
+  }
+  .grief-quote-sign{
+    display:inline-block;
+    margin-top:10px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .grief-h2{
+    text-align:center;
+    font-size:19px;
+    margin-bottom:22px;
+  }
+  .mood-row{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:24px;
+  }
+  .mood-btn{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:11px 20px;
+    cursor:pointer;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+  }
+  .mood-btn:hover{border-color:var(--warm);}
+  .mood-btn.selected{border-color:var(--warm); background:var(--warm-paper);}
+  .mood-label{font-size:14.5px; color:var(--muted);}
+  .mood-btn.selected .mood-label{color:var(--warm); font-weight:600;}
+  .grief-note{
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.8;
+    margin:-24px 0 36px;
+  }
+  .mood-reflection{
+    text-align:center;
+    font-size:16px;
+    line-height:1.9;
+    color:var(--ink);
+    background:var(--warm-paper);
+    border-radius:3px;
+    padding:20px 22px;
+    margin-bottom:16px;
+  }
+  .mood-action{
+    border:1px solid var(--warm-line);
+    border-radius:3px;
+    padding:20px 22px;
+    margin-bottom:36px;
+    text-align:center;
+  }
+  .mood-action-label{
+    font-size:12px;
+    color:var(--warm);
+    letter-spacing:0.06em;
+    margin-bottom:10px;
+  }
+  .mood-action-icon{
+    display:flex;
+    justify-content:center;
+    margin-bottom:10px;
+  }
+  .mood-action-title{
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+  .mood-action-desc{
+    font-size:14px;
+    color:var(--muted);
+    line-height:1.8;
+  }
+  .grief-resource{
+    font-size:13.5px;
+    color:var(--muted);
+    text-align:center;
+    line-height:1.9;
+    border-top:1px solid var(--line);
+    padding-top:22px;
+  }
+  .grief-resource a{color:var(--warm); font-weight:600;}
+
+  /* ---- ホーム画面 ---- */
+  .back-home-link{
+    display:block;
+    font-size:14px;
+    color:var(--muted);
+    margin-bottom:24px;
+    cursor:pointer;
+  }
+  .back-home-link:hover{color:var(--green);}
+  .home-greeting{
+    font-size:15px;
+    color:var(--muted);
+    margin-bottom:18px;
+  }
+  .progress-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:24px 22px;
+    margin-bottom:40px;
+  }
+  .progress-card-lead{
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:18px;
+    line-height:1.6;
+  }
+  .progress-track{
+    width:100%;
+    height:8px;
+    background:var(--paper-deep);
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--green);
+    border-radius:4px;
+    transition:width .4s ease;
+  }
+  .progress-count{
+    font-size:13.5px;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .home-section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .home-section-head h3{font-size:17px;}
+  .home-see-all{
+    background:none;
+    border:none;
+    color:var(--green);
+    font-size:13.5px;
+    cursor:pointer;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+  }
+  .home-recent{
+    border:1px solid var(--line);
+    border-radius:3px;
+    margin-bottom:36px;
+  }
+  .home-recent-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:16px 18px;
+    border-bottom:1px solid var(--line);
+    font-size:15px;
+  }
+  .home-recent-item:last-child{border-bottom:none;}
+  .home-recent-title{color:var(--ink);}
+  .home-recent-deadline{
+    font-size:12.5px;
+    color:var(--green);
+    font-weight:600;
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+  .home-empty{
+    font-size:14.5px;
+    color:var(--muted);
+    margin-bottom:36px;
+  }
+  .clear-data-link{
+    display:block;
+    width:100%;
+    background:none;
+    border:none;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--muted);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+    padding:8px;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+  }
+  .clear-data-link:hover{color:var(--urgent);}
+
+  /* ---- タブバー ---- */
+  .tab-bar{
+    display:flex;
+    max-width:640px;
+    margin:0 auto 32px;
+    border-bottom:1px solid var(--line);
+  }
+  .tab-btn{
+    flex:1;
+    background:none;
+    border:none;
+    border-bottom:2px solid transparent;
+    padding:14px 4px;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    font-size:12.5px;
+    color:var(--muted);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .tab-btn.active{color:var(--green); font-weight:700; border-bottom-color:var(--green);}
+  .tab-btn:hover{color:var(--green);}
+
+  /* ---- ホーム: カテゴリタイル ---- */
+  .home-tiles{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-bottom:36px;
+  }
+  .home-tile{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:14px 10px;
+    cursor:pointer;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    text-align:left;
+  }
+  .home-tile:hover{border-color:var(--green-soft);}
+  .home-tile-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .home-tile-sub{font-size:11.5px; color:var(--muted); line-height:1.5;}
+
+  /* ---- 専門家に相談 ---- */
+  /* ---- 専門家に相談: カテゴリチップ ---- */
+  .chip-bar{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-bottom:28px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .chip-bar::-webkit-scrollbar{display:none;}
+  .chip-btn{
+    flex-shrink:0;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:9px 16px;
+    font-size:13.5px;
+    color:var(--muted);
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .chip-btn:hover{border-color:var(--green-soft); color:var(--green);}
+
+  /* ---- 専門家に相談: カテゴリセクション ---- */
+  .expert-section{margin-bottom:36px; scroll-margin-top:16px;}
+  .expert-section-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .expert-section-head h3{font-size:17px; font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo UI',Meiryo,sans-serif; font-weight:700; color:var(--ink);}
+  .expert-tags{display:flex; gap:6px; flex-wrap:wrap;}
+  .expert-tag{
+    font-size:11.5px;
+    color:var(--green);
+    background:var(--paper-deep);
+    padding:3px 9px;
+    border-radius:20px;
+  }
+  .expert-hscroll{
+    display:flex;
+    gap:12px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .expert-hscroll .expert-card{
+    flex:0 0 240px;
+  }
+  .expert-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:18px 20px;
+  }
+  .expert-card-single{max-width:100%;}
+  .partner-name{font-size:14px; color:var(--ink); font-weight:500; margin:0 0 8px;}
+  .expert-card p{font-size:14.5px; color:var(--muted); margin:0 0 14px;}
+  @media print{
+    .step-nav,.footer-actions,.btn{display:none !important;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+<!-- Vercel Web Analytics: 匿名の閲覧数・イベント計測(個人情報は含みません) -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ---------------------------------------------------------
+   データ: 死後手続き・準備の一覧
+   各項目: contact(相談先) / documents(必要書類) / memo(注意点)
+--------------------------------------------------------- */
+const PROCEDURES = [
+  // 葬儀前の準備
+  {id:'sougi-jisshi', cat:'pre', title:'お葬式を執り行う', deadline:'死亡後2〜7日ごろが目安', always:true,
+    desc:'火葬許可が下りた後に執り行うのが一般的です。日時や場所が決まったら、下に書き留めておけます。',
+    contact:'葬儀社', documents:'なし', memo:'菩提寺がある場合は、日程を事前に相談しておくと安心です。',
+    expand:'funeral'},
+  {id:'mofuku', cat:'pre', title:'喪服の準備', deadline:'葬儀までに', always:true, noCheck:false,
+    desc:'手元にない、サイズが合わない場合はレンタルという選択肢もあります。24時間営業の無人店舗で試着からレンタルまでできるサービスもあり、最短1時間ほどで用意できます。',
+    contact:'なし', documents:'なし', memo:'当日レンタル対応の店舗もあるので、急な場合も慌てなくて大丈夫です。',
+    link:{label:'喪服レンタルの例を見る', url:'https://mofuku-rescue.com/'}},
+  {id:'embalming', cat:'soon', title:'エンバーミング(ご遺体衛生保全)という選択肢', deadline:'火葬までに(該当する場合のみ)', always:true,
+    desc:'ほとんどの場合、葬儀社によるドライアイスでの保全で十分です。エンバーミングは、火葬まで1週間以上空く、海外へ遺体を搬送する、外見の修復をしたいなど、限られたケースで選ばれる有料のオプションです。',
+    contact:'葬儀社', documents:'なし', memo:'全ての葬儀社が自社対応できるわけではなく、専門施設に依頼する場合もあります。必要な場合は早めに相談してください。',
+    link:{label:'内容の説明例を見る', url:'https://www.moshimo.net/features/embalming/'}},
+
+  // すぐに
+  {id:'shibou-todoke', cat:'immediate', title:'死亡届の提出', deadline:'7日以内', always:true,
+    desc:'死亡診断書とあわせて、亡くなった方の本籍地・死亡地・届出人の住所地いずれかの市区町村役場へ提出します。',
+    contact:'なし(葬儀社が代行することも多い)', documents:'死亡診断書(死体検案書)、届出人の印鑑', memo:'死亡診断書はこの後の手続きでも使うため、原本とは別にコピーを数部取っておくと安心です。',
+    expand:'city'},
+  {id:'kasou-kyoka', cat:'immediate', title:'火葬許可申請', deadline:'死亡届と同時', always:true,
+    desc:'死亡届の提出時にあわせて申請します。多くは葬儀社が代行してくれます。',
+    contact:'葬儀社', documents:'死亡届(同時提出)', memo:'葬儀社に依頼している場合は、進め方をまず確認すればOKです。'},
+
+  // 14日以内
+  {id:'setainushi', cat:'d14', title:'世帯主変更届', deadline:'14日以内',
+    desc:'世帯に残る方が2人以上いる場合に必要です。',
+    contact:'なし', documents:'届出人の本人確認書類', memo:'残る世帯員が1人だけの場合は、原則として届出は不要です。',
+    cond:a=>a.setainushi==='yes'},
+  {id:'hoken-soshitsu', cat:'d14', title:'国民健康保険・後期高齢者医療の資格喪失届', deadline:'14日以内',
+    desc:'保険証の返却もあわせて行います。',
+    contact:'なし', documents:'保険証、届出人の印鑑', memo:'保険証を返し忘れると、後日連絡が来ることがあります。',
+    cond:a=>a.kenpo==='kokuho'||a.kenpo==='koki'},
+  {id:'kaigo-soshitsu', cat:'d14', title:'介護保険資格喪失届', deadline:'14日以内',
+    desc:'65歳以上、または要介護認定を受けていた場合に必要です。',
+    contact:'なし', documents:'介護保険被保険者証', memo:'年金受給を目安に表示していますが、該当しない場合は不要です。窓口で確認すると確実です。',
+    cond:a=>a.nenkin==='yes'},
+  {id:'nenkin-teishi', cat:'d14', title:'年金受給停止の手続き', deadline:'国民年金10日/厚生年金14日以内',
+    desc:'年金事務所または年金相談センターへ。マイナンバーが年金機構に登録されている場合、届出自体は原則不要ですが、未支給分の請求は別途必要です。',
+    contact:'年金事務所・年金相談センター', documents:'年金証書、死亡診断書のコピー、戸籍謄本など', memo:'未支給年金の請求は忘れられがちなので、窓口で必ず確認してください。',
+    link:{label:'日本年金機構の案内を見る', url:'https://www.nenkin.go.jp/service/jukyu/tetsuduki/kyotsu/jukyu/20140731-01.html'},
+    expertKey:'nenkin',
+    cond:a=>a.nenkin==='yes'},
+
+  // 期限は定めなし・早めに
+  {id:'menkyo', cat:'soon', title:'運転免許証の返納', deadline:'期限なし・任意',
+    desc:'警察署または運転免許センターで返納手続きができます。',
+    contact:'なし', documents:'運転免許証', memo:'返納する法的な義務はありませんが、不正利用を防ぐため返納しておくと安心です。',
+    cond:a=>a.jidousha==='yes'},
+  {id:'jidousha-meigi', cat:'soon', title:'自動車の名義変更・売却', deadline:'期限なし・早めに',
+    desc:'相続人への名義変更、または廃車・売却の手続きが必要です。',
+    contact:'陸運局、または行政書士', documents:'車検証、遺産分割協議書など', memo:'売却する場合は、買取業者が手続きを代行してくれることもあります。',
+    expertKey:'gyousei',
+    cond:a=>a.jidousha==='yes'},
+  {id:'sousaihi', cat:'soon', title:'葬祭費・埋葬料の請求', deadline:'葬儀を行った日から2年以内', always:true,
+    desc:'国民健康保険・後期高齢者医療なら「葬祭費」(自治体により3万〜7万円程度)、会社の健康保険なら「埋葬料」(上限5万円)が、申請すれば受け取れます。',
+    contact:'市区町村役場、または健康保険組合・協会けんぽ', documents:'死亡を証明する書類、葬儀の領収書、振込先口座がわかるもの', memo:'申請しないと受け取れません。健康保険の資格喪失届と同時に手続きすると効率的です。'},
+  {id:'ginko-koza', cat:'soon', title:'銀行口座(預貯金)の相続手続き', deadline:'期限なし・早めに', always:true,
+    desc:'口座は死亡後に凍結されます。相続手続きが済むまで原則引き出せませんが、当面の生活費や葬儀費用のために、一定額まで単独で引き出せる「仮払い制度」があります(1金融機関あたり上限150万円が目安)。',
+    contact:'各金融機関', documents:'戸籍謄本一式、相続人の印鑑証明書など(金融機関により異なる)', memo:'口座が複数ある場合は、それぞれの銀行で手続きが必要です。'},
+  {id:'yuigon-kenin', cat:'soon', title:'遺言書の検認(遺言書がある場合)', deadline:'発見後、なるべく早く', always:true,
+    desc:'自宅や貸金庫で見つかった自筆の遺言書は、家庭裁判所での「検認」を経ないと相続手続きに使えません。法務局に保管されていた遺言書や、公正証書遺言の場合は検認は不要です。',
+    contact:'家庭裁判所、または弁護士・司法書士', documents:'遺言書(未開封のまま)、亡くなった方の戸籍謄本一式、相続人の戸籍謄本', memo:'封がされたものを勝手に開封すると、過料の対象になることがあります。見つけたら開けずにそのまま。内容が特定の人に偏っている場合、他の相続人には最低限の取り分(遺留分)を請求できる権利が1年以内という期限つきであります。',
+    expertKey:'legal'},
+  {id:'izokunenkin', cat:'soon', title:'遺族年金・死亡一時金の請求', deadline:'遺族年金は5年以内、死亡一時金は2年以内', always:true,
+    desc:'亡くなった方に生計を支えられていた遺族は、「遺族基礎年金」「遺族厚生年金」を受け取れる場合があります。受給要件に当てはまらない場合も、「死亡一時金」や「寡婦年金」が代わりに受け取れることがあります。',
+    contact:'年金事務所、または市区町村役場', documents:'年金手帳、戸籍謄本、住民票、収入を確認できる書類など', memo:'年金受給停止の手続きとは別の手続きです。該当するか窓口で確認するだけでも価値があります。',
+    expertKey:'nenkin'},
+  {id:'kougakuiryohi', cat:'soon', title:'高額療養費の請求', deadline:'診療月の翌月1日から2年以内', always:true,
+    desc:'亡くなる前の入院・治療で医療費の自己負担額が高額になっていた場合、上限を超えた分が払い戻される制度です。',
+    contact:'加入していた健康保険(市区町村役場、協会けんぽなど)', documents:'医療費の領収書、健康保険証の情報など', memo:'亡くなった後の請求でも、生前の医療費であれば対象になります。'},
+  {id:'taishokukin', cat:'soon', title:'死亡退職金・最終給与の受け取り', deadline:'早めに勤務先へ連絡',
+    desc:'会社員だった場合、未払いの給与や、死亡退職金・弔慰金が支払われることがあります。',
+    contact:'勤務先(人事・総務)', documents:'死亡を証明する書類、振込先口座がわかるもの', memo:'勤務先ごとに規定が異なるため、まずは連絡して確認してください。',
+    cond:a=>a.kenpo==='shakaihoken'},
+  {id:'kouyou', cat:'soon', title:'公共料金・携帯電話などの名義変更・解約', deadline:'期限なし・早めに', always:true,
+    desc:'電気・ガス・水道・通信サービスなど、契約ごとに連絡します。',
+    contact:'各契約会社', documents:'契約者情報、届出人の本人確認書類', memo:'契約を一覧にしてから連絡すると、漏れを防ぎやすくなります。'},
+  {id:'card', cat:'soon', title:'クレジットカードの解約', deadline:'期限なし・早めに', always:true,
+    desc:'カード会社へ連絡し、未払い分の精算方法を確認します。',
+    contact:'カード会社', documents:'届出人の本人確認書類', memo:'未払い分は相続財産から精算されることが多いです。'},
+  {id:'seimeihoken', cat:'soon', title:'生命保険金の請求', deadline:'請求期限は3年が目安(かんぽ生命は5年)',
+    desc:'保険会社に連絡し、必要書類を確認します。加入先がわからない場合は、生命保険協会が窓口となって加盟社に一括で契約の有無を照会してくれる制度があります(有料)。',
+    contact:'保険会社、または生命保険協会', documents:'死亡診断書、保険証券、受取人の本人確認書類', memo:'請求しないと支払われません。心当たりがなくても一度確認しておくと安心です。',
+    link:{label:'生命保険契約照会制度(生命保険協会)を見る', url:'https://www.seiho.or.jp/contact/inquiry/'},
+    cond:a=>a.seimeihoken==='yes'||a.seimeihoken==='unknown'},
+
+  // 3ヶ月以内
+  {id:'houki', cat:'m3', title:'相続放棄・限定承認の検討', deadline:'3ヶ月以内', always:true,
+    desc:'借金などマイナスの財産がある場合、家庭裁判所への申述が必要です。期限が短いため早めの判断が重要です。',
+    contact:'弁護士・司法書士、家庭裁判所', documents:'申述書、戸籍謄本など', memo:'財産調査が間に合わない場合、期間を延ばす申立てができることもあります。早めに専門家へ相談してください。',
+    expertKey:'legal'},
+
+  // 4ヶ月以内
+  {id:'junkakutei', cat:'m4', title:'準確定申告', deadline:'4ヶ月以内',
+    desc:'亡くなった方の所得税の申告です。個人事業主だった場合や一定の所得があった場合に必要になります。',
+    contact:'税理士', documents:'源泉徴収票、控除証明書など', memo:'相続人全員の連署が必要になる場合があります。',
+    link:{label:'国税庁の解説を見る', url:'https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2022.htm'},
+    expertKey:'tax',
+    cond:a=>a.jigyounushi==='yes'},
+
+  // 10ヶ月以内
+  {id:'souzokuzei', cat:'m10', title:'相続税の申告・納付(該当する場合)', deadline:'10ヶ月以内', always:true,
+    desc:'遺産分割協議を経て、基礎控除を超える場合は申告が必要です。',
+    contact:'税理士', documents:'財産目録、遺産分割協議書など', memo:'申告が不要なケースも多いですが、判断には専門知識が必要です。まず税理士に確認するのが安心です。',
+    link:{label:'国税庁「相続税のあらまし」を見る', url:'https://www.nta.go.jp/taxes/shiraberu/sozoku-tokushu/souzoku-aramashi.htm'},
+    expertKey:'tax'},
+  {id:'bunkatsu', cat:'m10', title:'遺産分割協議', deadline:'目安10ヶ月以内',
+    desc:'相続人全員で財産の分け方を話し合います。相続人が複数いる場合は早めに始めることをおすすめします。',
+    contact:'司法書士・弁護士', documents:'戸籍謄本一式、財産目録', memo:'相続人が一人でも欠けると協議は無効になります。全員の参加が必要です。',
+    expertKey:'legal',
+    cond:a=>a.souzokunin==='multiple'},
+
+  // 3年以内
+  {id:'touki', cat:'y3', title:'不動産の相続登記', deadline:'3年以内(義務化)',
+    desc:'2024年4月から義務化されました。正当な理由なく怠ると過料の対象になる場合があります。',
+    contact:'司法書士', documents:'遺産分割協議書、戸籍謄本、固定資産評価証明書など', memo:'相続人が多い、揉めているなど事情が複雑な場合ほど、早めの相談が安心です。',
+    link:{label:'法務省の案内を見る', url:'https://www.moj.go.jp/MINJI/minji05_00435.html'},
+    expertKey:'touki',
+    cond:a=>a.fudousan==='yes'},
+];
+
+const CATEGORIES = [
+  {id:'immediate', label:'すぐに',                  tag:'期限に注意', style:'urgent'},
+  {id:'pre',       label:'葬儀の準備',              tag:'落ち着いて', style:'calm'},
+  {id:'d14',       label:'14日以内',                tag:'期限に注意', style:'urgent'},
+  {id:'soon',      label:'期限は定めなし・早めに',  tag:'計画的に',   style:'calm'},
+  {id:'m3',        label:'3ヶ月以内',              tag:'期限に注意', style:'urgent'},
+  {id:'m4',        label:'4ヶ月以内',              tag:'計画的に',   style:'calm'},
+  {id:'m10',       label:'10ヶ月以内',             tag:'計画的に',   style:'calm'},
+  {id:'y3',        label:'3年以内',                tag:'計画的に',   style:'calm'},
+  {id:'hoyo',      label:'法要・追悼の目安',        tag:'心の区切り', style:'calm'},
+];
+
+const QUESTIONS = [
+  {key:'deathDate', type:'date', text:'いつ、お亡くなりになりましたか。', sub:'わかる範囲で。未定なら空欄のまま進めます。'},
+  {key:'setainushi', text:'亡くなった方は、世帯主でしたか。', sub:'わからなければ「わからない」で大丈夫です。',
+    opts:[{v:'yes',l:'世帯主だった'},{v:'no',l:'世帯主ではなかった'},{v:'unknown',l:'わからない'}]},
+  {key:'nenkin', text:'年金を受給していましたか。', sub:'',
+    opts:[{v:'yes',l:'受給していた'},{v:'no',l:'受給していなかった'}]},
+  {key:'kenpo', text:'加入していた健康保険は、どれに近いですか。', sub:'',
+    opts:[{v:'kokuho',l:'国民健康保険'},{v:'koki',l:'後期高齢者医療制度'},{v:'shakaihoken',l:'会社の健康保険'},{v:'unknown',l:'わからない'}]},
+  {key:'fudousan', text:'不動産(土地・建物)を所有していましたか。', sub:'',
+    opts:[{v:'yes',l:'所有していた'},{v:'no',l:'所有していなかった'}]},
+  {key:'jidousha', text:'自動車を所有していましたか。', sub:'',
+    opts:[{v:'yes',l:'所有していた'},{v:'no',l:'所有していなかった'}]},
+  {key:'jigyounushi', text:'個人事業主・自営業でしたか。', sub:'',
+    opts:[{v:'yes',l:'個人事業主だった'},{v:'no',l:'会社員・その他だった'}]},
+  {key:'seimeihoken', text:'生命保険に加入していましたか。', sub:'',
+    opts:[{v:'yes',l:'加入していた'},{v:'no',l:'加入していなかった'},{v:'unknown',l:'わからない'}]},
+  {key:'souzokunin', text:'相続人は、複数いますか。', sub:'財産を引き継ぐ方の人数です。',
+    opts:[{v:'multiple',l:'複数いる'},{v:'single',l:'1人だけ'},{v:'unknown',l:'わからない'}]},
+  {key:'shukyou', text:'葬儀は仏式で行いますか。', sub:'法要の時期をご案内するための質問です。',
+    opts:[{v:'yes',l:'仏式で行う'},{v:'other',l:'それ以外・わからない'}]},
+];
+
+const MOODS = [
+  {key:'tsurai', label:'つらい', reflection:'つらい時は、つらいままでいていいです。無理に元気を装う必要はありません。',
+    action:{icon:'tea', title:'温かいものを、ゆっくり一口', desc:'お茶でも白湯でもいい。ひと口だけ飲んで、少し息をつく。'}},
+  {key:'bonyari', label:'ぼんやり', reflection:'頭がうまく働かないのは自然なことです。今日はできることだけで十分です。',
+    action:{icon:'breath', title:'呼吸を、数えてみる', desc:'4秒吸って、6秒かけて吐く。それを2〜3回だけ。'}},
+  {key:'sabishii', label:'さびしい', reflection:'さびしさは、大切な人がいた証でもあります。感じていいものです。',
+    action:{icon:'message', title:'誰か一人に、一言だけ', desc:'「元気にしてる」のひと言で十分です。返事がなくてもいいです。'}},
+  {key:'ikari', label:'怒り', reflection:'やり場のない気持ちが湧くのも、自然な反応です。誰かにぶつける必要はありません。',
+    action:{icon:'move', title:'体を、少しだけ動かす', desc:'肩を回す、軽く伸びをする。気持ちの逃し場になります。'}},
+  {key:'raku', label:'少し楽', reflection:'少し楽に感じられる瞬間があってもいいです。それは、裏切りではありません。',
+    action:{icon:'write', title:'その感覚を、一行だけ書き留める', desc:'後で読み返す自分のために。うまく書けなくて構いません。'}},
+];
+
+/* ---------------------------------------------------------
+   状態
+--------------------------------------------------------- */
+let state = {
+  screen:'intro',   // intro | question | home | results | grief
+  qIndex:0,
+  answers:{},
+  info:{deathDate:'', funeralAt:'', funeralPlace:'', cityName:''},
+  checked:{},
+  geo:null,      // {lat, lng} 取得できたらセット
+  geoStatus:'idle', // idle | loading | denied | error
+  ui:{funeralOpen:false, cityOpen:false, showAll:false},
+  mood:null,
+  expertJumpTo:null,
+};
+
+/* ---- この端末への自動保存(アカウント不要) ---- */
+const STORAGE_KEY = 'tomurai-progress-v1';
+
+function saveProgress(){
+  try{
+    const toSave = {
+      answers: state.answers,
+      info: state.info,
+      checked: state.checked,
+      mood: state.mood,
+      qIndex: state.qIndex,
+      screen: (state.screen==='intro' || state.screen==='question') ? state.screen : 'home',
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  }catch(e){ /* 保存できない環境では何もしない */ }
+}
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const saved = JSON.parse(raw);
+    if(!saved || !saved.answers || Object.keys(saved.answers).length===0) return false;
+    state.answers = saved.answers || {};
+    state.info = Object.assign({deathDate:'', funeralAt:'', funeralPlace:'', cityName:''}, saved.info || {});
+    state.checked = saved.checked || {};
+    state.mood = saved.mood || null;
+    state.qIndex = saved.qIndex || 0;
+    state.screen = (saved.screen==='question') ? 'question' : 'home';
+    return true;
+  }catch(e){ return false; }
+}
+
+function clearProgress(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+}
+
+const app = document.getElementById('app');
+
+/* ---- 匿名の利用状況計測(Vercel Web Analytics) ----
+   個人を識別する情報は送らず、「何が何回起きたか」だけを送る。
+   スクリプトが読み込まれていない環境(プレビュー等)でも壊れないようガード。 */
+function track(name, props){
+  try{
+    if(typeof window.va === 'function'){
+      window.va('event', props? {name, ...props} : {name});
+    }
+  }catch(e){ /* 計測できなくても機能には影響させない */ }
+}
+
+const TABS = [
+  {id:'home', label:'ホーム'},
+  {id:'results', label:'手続き一覧'},
+  {id:'experts', label:'専門家に相談'},
+  {id:'grief', label:'こころのケア'},
+];
+
+function renderTabBar(activeId){
+  const bar = document.createElement('div');
+  bar.className='tab-bar';
+  bar.innerHTML = TABS.map(t=>`
+    <button class="tab-btn ${activeId===t.id?'active':''}" data-t="${t.id}">${t.label}</button>
+  `).join('');
+  bar.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const t = btn.getAttribute('data-t');
+      state.screen = t; render();
+      track('tab_open', {tab:t});
+    };
+  });
+  return bar;
+}
+
+function render(){
+  app.innerHTML = '';
+  if(state.screen==='intro') renderIntro();
+  else if(state.screen==='question') renderQuestion();
+  else if(state.screen==='grief') renderGrief();
+  else if(state.screen==='results') renderResults();
+  else if(state.screen==='experts') renderExperts();
+  else renderHome();
+  saveProgress();
+}
+
+/* ---- 位置情報 ---- */
+function requestLocation(){
+  if(!navigator.geolocation){ state.geoStatus='error'; render(); return; }
+  state.geoStatus='loading'; render();
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      state.geo = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+      state.geoStatus='ok';
+      render();
+      track('geo_granted');
+    },
+    ()=>{ state.geoStatus='denied'; render(); },
+    {timeout:8000}
+  );
+}
+function mapsSearchUrl(query, geo){
+  if(geo){
+    return `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${geo.lat},${geo.lng},14z`;
+  }
+  return `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
+}
+
+/* ---- ensō 円相 SVG ---- */
+function enso(progressRatio, size=88){
+  const r = size/2 - 6;
+  const circumference = 2*Math.PI*r;
+  const gapAtFull = circumference*0.06;
+  const dash = circumference*Math.min(progressRatio,1) - (progressRatio>0.05? gapAtFull*0.4:0);
+  return `
+  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#DCD8CC" stroke-width="2"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#2B5545" stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-dasharray="${dash} ${circumference}"
+      transform="rotate(-90 ${size/2} ${size/2})"
+      style="transition: stroke-dasharray .5s ease;"/>
+  </svg>`;
+}
+
+/* ---- こころのケア: 手描き風の線画アイコン ---- */
+function griefIcon(){
+  return `
+  <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+    <path d="M9 33 Q16 21, 25 27 T44 22" stroke="#8B6F4E" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <path d="M9 39 Q17 30, 27 35 T45 31" stroke="#8B6F4E" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.55"/>
+    <circle cx="41" cy="14" r="3.2" stroke="#8B6F4E" stroke-width="1.4" fill="none"/>
+  </svg>`;
+}
+
+/* ---- こころのケア: アクションごとのアイコン ---- */
+const MOOD_ICONS = {
+  tea: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <path d="M10 18 h16 v7 a8 8 0 01-8 8h0 a8 8 0 01-8-8z" stroke="#8B6F4E" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+    <path d="M26 20 q5 0 5 4.5 t-5 4.5" stroke="#8B6F4E" stroke-width="1.3" fill="none"/>
+    <path d="M14 10 q2.5 3 0 5.5" stroke="#8B6F4E" stroke-width="1.1" fill="none" opacity="0.55"/>
+    <path d="M19 9 q2.5 3 0 5.5" stroke="#8B6F4E" stroke-width="1.1" fill="none" opacity="0.55"/>
+  </svg>`,
+  breath: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <circle cx="20" cy="20" r="4" stroke="#8B6F4E" stroke-width="1.4" fill="none"/>
+    <circle cx="20" cy="20" r="9.5" stroke="#8B6F4E" stroke-width="1.2" fill="none" opacity="0.55"/>
+    <circle cx="20" cy="20" r="15" stroke="#8B6F4E" stroke-width="1" fill="none" opacity="0.3"/>
+  </svg>`,
+  message: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <path d="M9 12h22a2 2 0 012 2v10a2 2 0 01-2 2H18l-6 5v-5h-3a2 2 0 01-2-2V14a2 2 0 012-2z" stroke="#8B6F4E" stroke-width="1.4" fill="none" stroke-linejoin="round"/>
+  </svg>`,
+  move: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <circle cx="20" cy="9" r="3" stroke="#8B6F4E" stroke-width="1.4" fill="none"/>
+    <path d="M20 13 v9 M20 15 L12 10 M20 15 L28 10 M20 22 L14 32 M20 22 L26 32" stroke="#8B6F4E" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+  </svg>`,
+  write: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <path d="M11 29 L25.5 14.5 a2.2 2.2 0 013.1 3.1L14 32l-5 1z" stroke="#8B6F4E" stroke-width="1.4" fill="none" stroke-linejoin="round"/>
+  </svg>`,
+};
+
+/* ---- INTRO ---- */
+function renderIntro(){
+  const el = document.createElement('div');
+  el.className = 'intro';
+  el.innerHTML = `
+    <div class="intro-mark">と む ら い</div>
+    <div class="enso-holder">${enso(0.06,96)}</div>
+    <h1>大切な方を送られたあと、まず何から始めればいいか。</h1>
+    <p class="lead">いくつか質問にお答えいただくと、「今」と「少し先」に必要なことだけを、まずお伝えします。それ以外は、あとで見られる場所にしまっておきます。今日はこれで十分です。</p>
+    <div class="intro-notes">
+      <div><span class="n">一</span><span>入力した内容は、この端末のブラウザにだけ保存されます。次回もこの続きから始められます。共有のパソコンでは、最後に「はじめからやり直す」で消去できます。</span></div>
+      <div><span class="n">二</span><span>一般的な目安をまとめたものです。正式な手続きは自治体・年金事務所・専門家にご確認ください。</span></div>
+    </div>
+    <button class="btn btn-block" id="start-btn">はじめる</button>
+    <div class="legal-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <span class="legal-dot">・</span>
+      <a href="terms.html">利用規約</a>
+    </div>
+  `;
+  app.appendChild(el);
+  document.getElementById('start-btn').onclick = ()=>{
+    track('start_questions');
+    state.screen='question'; state.qIndex=0; render();
+  };
+}
+
+/* ---- QUESTION ---- */
+function renderQuestion(){
+  const q = QUESTIONS[state.qIndex];
+  const progress = (state.qIndex)/QUESTIONS.length;
+  const el = document.createElement('div');
+  el.className='question';
+
+  if(q.type==='date'){
+    el.innerHTML = `
+      <div class="enso-holder">${enso(0.06 + progress*0.8, 72)}</div>
+      <div class="step-index">${state.qIndex+1} / ${QUESTIONS.length}</div>
+      <h2>${q.text}</h2>
+      ${q.sub? `<div class="sub">${q.sub}</div>` : '<div class="sub"></div>'}
+      <div class="info-form">
+        <div class="field">
+          <input type="date" id="q-date" value="${state.info.deathDate}">
+        </div>
+      </div>
+      <button class="btn btn-block" id="date-next">次へ</button>
+      <div class="step-nav">
+        <button class="back" id="back-btn">${state.qIndex===0?'← はじめに戻る':'← 前の質問へ'}</button>
+      </div>
+    `;
+    app.appendChild(el);
+    document.getElementById('date-next').onclick = ()=>{
+      state.info.deathDate = document.getElementById('q-date').value;
+      if(state.qIndex < QUESTIONS.length-1){ state.qIndex++; } else { state.screen='home'; track('completed_questions'); }
+      render();
+    };
+    document.getElementById('back-btn').onclick = ()=>{
+      if(state.qIndex===0){ state.screen='intro'; }
+      else { state.qIndex--; }
+      render();
+    };
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="enso-holder">${enso(0.06 + progress*0.8, 72)}</div>
+    <div class="step-index">${state.qIndex+1} / ${QUESTIONS.length}</div>
+    <h2>${q.text}</h2>
+    ${q.sub? `<div class="sub">${q.sub}</div>` : '<div class="sub"></div>'}
+    <div class="options">
+      ${q.opts.map(o=>`
+        <div class="option ${state.answers[q.key]===o.v?'selected':''}" data-v="${o.v}">
+          <span>${o.l}</span><span class="mark"></span>
+        </div>`).join('')}
+    </div>
+    <div class="step-nav">
+      <button class="back" id="back-btn">${state.qIndex===0?'← はじめに戻る':'← 前の質問へ'}</button>
+    </div>
+  `;
+  app.appendChild(el);
+
+  el.querySelectorAll('.option').forEach(node=>{
+    node.onclick = ()=>{
+      state.answers[q.key] = node.getAttribute('data-v');
+      if(state.qIndex < QUESTIONS.length-1){
+        state.qIndex++;
+      } else {
+        state.screen='home';
+        track('completed_questions');
+      }
+      render();
+    };
+  });
+  document.getElementById('back-btn').onclick = ()=>{
+    if(state.qIndex===0){ state.screen='intro'; }
+    else { state.qIndex--; }
+    render();
+  };
+}
+
+/* ---- 法要日の計算 ---- */
+function addDays(dateStr, days){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+days);
+  return d;
+}
+function addYears(dateStr, years){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setFullYear(d.getFullYear()+years);
+  return d;
+}
+function formatJP(d){
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function buildHoyoItems(){
+  if(state.answers.shukyou!=='yes' && state.answers.shukyou!=='other') return [];
+  const hasDate = !!state.info.deathDate;
+  if(state.answers.shukyou==='other'){
+    return [{
+      id:'hoyo-generic', cat:'hoyo', noCheck:true,
+      title:'法要・追悼の時期を確認する',
+      deadline: hasDate? '目安あり(下記メモ参照)' : '宗派によって異なる',
+      desc:'仏式では初七日・四十九日、神式では十日祭・五十日祭、キリスト教式では追悼ミサや召天記念日など、宗教・宗派によって時期も呼び方も異なります。',
+      contact:'菩提寺・神社・教会など、または葬儀社', documents:'なし',
+      memo:'家族や葬儀社に、どの形式で行うかを早めに確認しておくと安心です。'
+    }];
+  }
+  const items = [
+    {key:'shonanoka', days:6, title:'初七日', note:'最近は葬儀当日にあわせて行う「繰り上げ初七日」も一般的です。'},
+    {key:'shijukunichi', days:48, title:'四十九日(忌明け)', note:'納骨や香典返しを、このタイミングで行うことが多いです。'},
+    {key:'isshuki', years:1, title:'一周忌', note:'親族に日程の連絡を早めにしておくと集まりやすくなります。'},
+  ];
+  return items.map(it=>{
+    let deadline = it.days!=null ? `目安: 逝去から${it.days+1}日目` : '目安: 逝去から1年後';
+    let desc = '仏式での法要の目安です。';
+    if(hasDate){
+      const d = it.years ? addYears(state.info.deathDate, it.years) : addDays(state.info.deathDate, it.days);
+      deadline = formatJP(d) + ' ごろ';
+      desc += ` 数え方は地域や宗派によって前後する場合があります。`;
+    } else {
+      desc += ' 逝去日を入力すると、目安の日付を計算します。';
+    }
+    return {
+      id:'hoyo-'+it.key, cat:'hoyo', noCheck:true,
+      title:it.title, deadline, desc,
+      contact:'菩提寺・葬儀社', documents:'なし', memo:it.note
+    };
+  });
+}
+
+/* ---- ホーム ---- */
+function timeGreeting(){
+  const h = new Date().getHours();
+  if(h < 5) return 'こんばんは';
+  if(h < 11) return 'おはようございます';
+  if(h < 18) return 'こんにちは';
+  return 'こんばんは';
+}
+function daysSince(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return Math.max(0, Math.round((today-d)/86400000));
+}
+
+function renderHome(){
+  const grouped = buildChecklist();
+  const allItems = Object.values(grouped).flat();
+  const checkable = allItems.filter(it=>!it.noCheck);
+  const doneCount = checkable.filter(it=>state.checked[it.id]).length;
+  const pct = checkable.length? Math.round(doneCount/checkable.length*100) : 0;
+
+  const primaryOrder = ['immediate', 'pre', 'd14'];
+  const upcoming = primaryOrder
+    .flatMap(cid=>grouped[cid])
+    .filter(it=>!it.noCheck && !state.checked[it.id])
+    .slice(0,3);
+
+  app.appendChild(renderTabBar('home'));
+
+  const el = document.createElement('div');
+  el.className='home';
+  el.innerHTML = `
+    <div class="home-greeting">${timeGreeting()}</div>
+    <div class="progress-card">
+      ${state.info.deathDate
+        ? `<div class="progress-card-lead">ご逝去から${daysSince(state.info.deathDate)}日が経過しました</div>`
+        : `<div class="progress-card-lead">ここまで、お疲れ様でした</div>`}
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-count">${doneCount} / ${checkable.length}件 完了</div>
+      <button class="btn btn-block" id="home-continue">続きを見る</button>
+    </div>
+    <div class="home-tiles">
+      <button class="home-tile" data-t="results">
+        <span class="home-tile-title">手続き一覧</span>
+        <span class="home-tile-sub">${checkable.length}件・期限順</span>
+      </button>
+      <button class="home-tile" data-t="experts">
+        <span class="home-tile-title">専門家に相談</span>
+        <span class="home-tile-sub">近くの窓口を探す</span>
+      </button>
+      <button class="home-tile" data-t="grief">
+        <span class="home-tile-title">こころのケア</span>
+        <span class="home-tile-sub">今の気持ちを、少しだけ</span>
+      </button>
+    </div>
+    ${upcoming.length? `
+    <div class="home-section-head">
+      <h3>直近の手続き</h3>
+      <button class="home-see-all" id="home-see-all">すべて見る →</button>
+    </div>
+    <div class="home-recent">
+      ${upcoming.map(it=>`
+        <div class="home-recent-item">
+          <span class="home-recent-title">${it.title}</span>
+          <span class="home-recent-deadline">${it.deadline}</span>
+        </div>`).join('')}
+    </div>` : `
+    <div class="home-section-head"><h3>直近の手続き</h3></div>
+    <p class="home-empty">今のところ、対応が必要な手続きはありません。</p>
+    `}
+    <button class="clear-data-link" id="clear-data-btn">この端末のデータを消去</button>
+  `;
+  app.appendChild(el);
+  document.getElementById('home-continue').onclick = ()=>{ state.screen='results'; render(); };
+  const seeAll = document.getElementById('home-see-all');
+  if(seeAll){ seeAll.onclick = ()=>{ state.screen='results'; render(); }; }
+  el.querySelectorAll('.home-tile').forEach(btn=>{
+    btn.onclick = ()=>{ state.screen = btn.getAttribute('data-t'); render(); };
+  });
+  document.getElementById('clear-data-btn').onclick = ()=>{
+    if(confirm('この端末に保存された回答をすべて消去します。よろしいですか？')){
+      clearProgress();
+      state = {screen:'intro', qIndex:0, answers:{}, info:{deathDate:'', funeralAt:'', funeralPlace:'', cityName:''}, checked:{}, geo:null, geoStatus:'idle', ui:{funeralOpen:false, cityOpen:false, showAll:false}, mood:null, expertJumpTo:null};
+      render();
+    }
+  };
+}
+
+/* ---- こころのケア ---- */
+function renderGrief(){
+  app.appendChild(renderTabBar('grief'));
+  const el = document.createElement('div');
+  el.className='grief';
+  const selectedMood = state.mood? MOODS.find(m=>m.key===state.mood) : null;
+  el.innerHTML = `
+    <div class="grief-icon-holder">${griefIcon()}</div>
+    <div class="grief-mark">こころのケア</div>
+    <div class="grief-quote">
+      悲しむことは、愛していた証です。<br>
+      泣いていい。何もしない日があっていい。<br>
+      <span class="grief-quote-sign">— とむらい</span>
+    </div>
+    <p class="grief-note">悲しみには、決まった順番も期限もありません。良くなったり戻ったりを繰り返すのが自然です。</p>
+    <h2 class="grief-h2">今、どんな気持ちですか</h2>
+    <div class="mood-row">
+      ${MOODS.map(m=>`
+        <button class="mood-btn ${state.mood===m.key?'selected':''}" data-k="${m.key}">
+          <span class="mood-label">${m.label}</span>
+        </button>`).join('')}
+    </div>
+    ${selectedMood? `
+    <div class="mood-reflection">${selectedMood.reflection}</div>
+    <div class="mood-action">
+      <div class="mood-action-label">今、これだけ試してみませんか</div>
+      <div class="mood-action-icon">${MOOD_ICONS[selectedMood.action.icon]}</div>
+      <div class="mood-action-title">${selectedMood.action.title}</div>
+      <div class="mood-action-desc">${selectedMood.action.desc}</div>
+    </div>
+    ` : ''}
+    <div class="grief-resource">
+      強いつらさが続く時は、一人で抱えず頼っていい場所があります。<br>
+      よりそいホットライン(通話無料・24時間)　<a href="tel:0120279338">0120-279-338</a>
+    </div>
+  `;
+  app.appendChild(el);
+  el.querySelectorAll('.mood-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const k = btn.getAttribute('data-k');
+      state.mood = k; render();
+      track('mood_selected', {mood:k});
+    };
+  });
+}
+
+/* ---- 専門家に相談 ---- */
+const EXPERTS = [
+  {key:'legal', title:'弁護士・司法書士', tags:['相続放棄','遺産分割協議'], geoQuery:'弁護士 司法書士',
+    desc:'相続放棄の判断や、相続人どうしの話し合いに関わります。',
+    partners:[]
+    // 連絡先がわかったら例えばこう書きます(複数人可):
+    // partners:[{name:'〇〇法律事務所(〇〇 〇〇)', contact:{type:'tel', label:'連絡する', value:'0312345678'}}]
+  },
+  {key:'touki', title:'司法書士', tags:['相続登記'], geoQuery:'司法書士',
+    desc:'不動産の名義変更(相続登記)の手続きを担います。', partners:[]},
+  {key:'tax', title:'税理士', tags:['準確定申告','相続税'], geoQuery:'税理士',
+    desc:'亡くなった方の確定申告や、相続税の申告・納付に関わります。', partners:[]},
+  {key:'gyousei', title:'行政書士', tags:['自動車の名義変更'], geoQuery:'行政書士',
+    desc:'自動車の名義変更など、役所まわりの書類作成を担います。', partners:[]},
+  {key:'nenkin', title:'年金事務所', tags:['年金の手続き'], geoQuery:'年金事務所',
+    desc:'年金受給停止や、未支給年金の請求先です。', partners:[]},
+  {key:'grief', title:'グリーフカウンセラー', tags:['心のケア'], geoQuery:'グリーフカウンセラー',
+    desc:'気持ちの整理に、専門的に寄り添う相談先です。', partners:[]},
+];
+
+function contactHref(contact){
+  if(contact.type==='tel') return `tel:${contact.value}`;
+  if(contact.type==='mail') return `mailto:${contact.value}?subject=${encodeURIComponent('とむらい経由のご相談')}`;
+  return contact.value; // line等のURLをそのまま
+}
+
+function renderExperts(){
+  app.appendChild(renderTabBar('experts'));
+  const el = document.createElement('div');
+  el.className='experts';
+  el.innerHTML = `
+    <div class="results-head"><h2>専門家に相談</h2></div>
+    <div class="results-sub">状況に応じて、相談先になりやすい専門家をまとめました。</div>
+    <div class="chip-bar">
+      ${EXPERTS.map(ex=>`<button class="chip-btn" data-jump="expert-${ex.key}">${ex.title}</button>`).join('')}
+    </div>
+    <div class="geo-bar">
+      ${state.geoStatus==='ok'
+        ? `<span class="geo-ok">📍 現在地を使って探せます</span>`
+        : `<button class="btn btn-ghost btn-geo" id="geo-btn">📍 現在地を使って近くで探す</button>`}
+      ${state.geoStatus==='denied'? `<div class="geo-note">位置情報が許可されなかったため、地名なしの一般検索になっています。</div>`:''}
+      ${state.geoStatus==='loading'? `<div class="geo-note">取得中です…</div>`:''}
+    </div>
+    ${EXPERTS.map(ex=>`
+      <div class="expert-section" id="expert-${ex.key}">
+        <div class="expert-section-head">
+          <h3>${ex.title}</h3>
+          <div class="expert-tags">${ex.tags.map(t=>`<span class="expert-tag">${t}</span>`).join('')}</div>
+        </div>
+        ${ex.partners.length? `
+          <div class="expert-hscroll">
+            ${ex.partners.map(p=>`
+              <div class="expert-card">
+                <div class="partner-name">${p.name}</div>
+                <p>${ex.desc}</p>
+                <a class="btn btn-block" href="${contactHref(p.contact)}" target="_blank" rel="noopener">${p.contact.label}</a>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="expert-card expert-card-single">
+            <p>${ex.desc}</p>
+            <a class="btn btn-ghost btn-block" href="${mapsSearchUrl(ex.geoQuery, state.geo)}" target="_blank" rel="noopener">近くで探す</a>
+          </div>
+        `}
+      </div>
+    `).join('')}
+  `;
+  app.appendChild(el);
+  const geoBtn = document.getElementById('geo-btn');
+  if(geoBtn){ geoBtn.onclick = requestLocation; }
+  el.querySelectorAll('.chip-btn').forEach(chip=>{
+    chip.onclick = ()=>{
+      document.getElementById(chip.getAttribute('data-jump'))
+        .scrollIntoView({behavior:'smooth', block:'start'});
+    };
+  });
+
+  if(state.expertJumpTo){
+    const target = document.getElementById('expert-'+state.expertJumpTo);
+    if(target){ target.scrollIntoView({behavior:'smooth', block:'start'}); }
+    state.expertJumpTo = null;
+  }
+}
+
+/* ---- RESULTS ---- */
+function buildChecklist(){
+  const base = PROCEDURES.filter(p => p.always || (p.cond && p.cond(state.answers)));
+  const all = base.concat(buildHoyoItems());
+  const grouped = {};
+  CATEGORIES.forEach(c=>grouped[c.id]=[]);
+  all.forEach(it=>grouped[it.cat].push(it));
+  return grouped;
+}
+
+function renderResults(){
+  const grouped = buildChecklist();
+  const allItems = Object.values(grouped).flat();
+  const checkable = allItems.filter(it=>!it.noCheck);
+  const doneCount = checkable.filter(it=>state.checked[it.id]).length;
+
+  const primaryIds = ['pre','immediate','d14'];
+  const laterCats = CATEGORIES.filter(c=>!primaryIds.includes(c.id) && grouped[c.id].length);
+  const laterCount = laterCats.reduce((n,c)=>n+grouped[c.id].length,0);
+
+  app.appendChild(renderTabBar('results'));
+
+  const el = document.createElement('div');
+  el.className='results';
+  el.innerHTML = `
+    <div class="enso-holder">${enso(0.98, 96)}</div>
+    <div class="results-head"><h2>手続きチェックリスト</h2></div>
+    <div class="results-sub">「今」と「少し先」に必要なことだけ、まずまとめています。</div>
+    <div class="disclaimer">
+      一般的なケースをもとにした目安のご案内です。正式な要件・期限は、市区町村役場・年金事務所・税理士・司法書士・弁護士など専門家にご確認ください。
+    </div>
+    <div class="geo-bar">
+      ${state.geoStatus==='ok'
+        ? `<span class="geo-ok">📍 現在地を使って、窓口や専門家のリンクを表示しています</span>`
+        : `<button class="btn btn-ghost btn-geo" id="geo-btn">📍 現在地を使って近くの窓口・専門家を探す</button>`}
+      ${state.geoStatus==='denied'? `<div class="geo-note">位置情報が許可されなかったため、地名なしの一般検索になっています。</div>`:''}
+      ${state.geoStatus==='loading'? `<div class="geo-note">取得中です…</div>`:''}
+    </div>
+    <div id="categories"></div>
+    ${laterCount? `
+    <div class="later-toggle">
+      ${state.ui.showAll
+        ? ''
+        : `<button class="btn btn-ghost btn-block" id="show-all-btn">それ以外の手続きも見る(${laterCount}件・まだ先で大丈夫です)</button>`}
+    </div>
+    <div id="later-categories"></div>
+    `:''}
+    <div class="progress-line" style="margin-top:36px;">${doneCount} / ${checkable.length} 完了</div>
+    <div class="footer-actions">
+      <button class="btn btn-ghost" id="print-btn">印刷して手元に残す</button>
+      <button class="btn btn-ghost" id="restart-btn">はじめからやり直す</button>
+    </div>
+  `;
+  app.appendChild(el);
+
+  const geoBtn = document.getElementById('geo-btn');
+  if(geoBtn){ geoBtn.onclick = requestLocation; }
+
+  const catHolder = el.querySelector('#categories');
+  const laterHolder = el.querySelector('#later-categories');
+  CATEGORIES.forEach(cat=>{
+    const list = grouped[cat.id];
+    if(!list.length) return;
+    const isPrimary = primaryIds.includes(cat.id);
+    if(!isPrimary && !state.ui.showAll) return;
+    const targetHolder = isPrimary? catHolder : laterHolder;
+    const block = document.createElement('div');
+    block.className='category';
+    block.innerHTML = `
+      <div class="category-head">
+        <h3>${cat.label}</h3>
+        <span class="deadline-tag ${cat.style==='urgent'?'urgent':'calm'}">${cat.tag}</span>
+      </div>
+      ${cat.id==='hoyo' && state.answers.shukyou==='yes' && !state.info.deathDate ? '<div class="category-note">逝去日を入力していないため、日数の目安のみ表示しています。</div>' : ''}
+      <div class="items"></div>
+    `;
+    const itemsHolder = block.querySelector('.items');
+    list.forEach(it=>{
+      const done = !!state.checked[it.id];
+      const row = document.createElement('div');
+      row.className = 'item' + (done?' done':'') + (it.noCheck?' no-check':'');
+
+      let expandHtml = '';
+      if(it.expand==='funeral'){
+        const open = state.ui.funeralOpen || !!(state.info.funeralAt || state.info.funeralPlace);
+        expandHtml = `<div class="expand">
+          ${open? `
+            <div class="info-form">
+              <div class="field"><label for="f-funeral">葬儀の日時</label><input type="datetime-local" id="f-funeral" value="${state.info.funeralAt}"></div>
+              <div class="field"><label for="f-place">葬儀の場所</label><input type="text" id="f-place" placeholder="例: 〇〇セレモニーホール" value="${state.info.funeralPlace}"></div>
+            </div>
+          ` : `<button class="expand-toggle" id="funeral-toggle">日時・場所を書く +</button>`}
+        </div>`;
+      }
+      if(it.expand==='city'){
+        const open = state.ui.cityOpen || !!state.info.cityName;
+        expandHtml = `<div class="expand">
+          ${open? `
+            <div class="info-form">
+              <div class="field"><label for="f-city">お住まいだった市区町村</label><input type="text" id="f-city" placeholder="例: 世田谷区、横浜市" value="${state.info.cityName}"></div>
+            </div>
+            ${state.info.cityName? `<p style="margin:4px 0 8px; font-size:13.5px; color:var(--muted);">「おくやみコーナー」など、自治体の一括窓口が見つかる場合があります。</p>
+            <a class="link" href="${state.geo? mapsSearchUrl('おくやみコーナー '+state.info.cityName, state.geo) : 'https://www.google.com/search?q='+encodeURIComponent(state.info.cityName+' おくやみコーナー')}" target="_blank" rel="noopener">${state.info.cityName}の窓口情報を調べる →</a>`:''}
+          ` : `<button class="expand-toggle" id="city-toggle">お住まいの市区町村を書く +</button>`}
+        </div>`;
+      }
+
+      row.innerHTML = `
+        <div class="box"></div>
+        <div class="body">
+          <span class="deadline-small">${it.deadline}</span>
+          <h4>${it.title}</h4>
+          <p>${it.desc}</p>
+          <div class="meta-list">
+            <div class="row"><span class="label">相談先</span><span class="val">${it.contact||'—'}</span></div>
+            <div class="row"><span class="label">必要書類</span><span class="val">${it.documents||'—'}</span></div>
+            <div class="row"><span class="label">メモ</span><span class="val">${it.memo||'—'}</span></div>
+          </div>
+          ${it.link? `<a class="link" href="${it.link.url}" target="_blank" rel="noopener">${it.link.label} →</a>`:''}
+          ${it.expertKey? `<a class="link expert-jump" data-expert-key="${it.expertKey}">専門家に相談する →</a>`:''}
+          ${expandHtml}
+        </div>
+      `;
+      if(!it.noCheck){
+        row.onclick = (e)=>{
+          if(e.target.tagName==='A' || e.target.closest('.expand')) return;
+          state.checked[it.id] = !state.checked[it.id];
+          render();
+        };
+      } else {
+        row.style.cursor='default';
+      }
+      itemsHolder.appendChild(row);
+
+      const funeralToggle = row.querySelector('#funeral-toggle');
+      if(funeralToggle){ funeralToggle.onclick = (e)=>{ e.stopPropagation(); state.ui.funeralOpen=true; render(); }; }
+      const fFuneral = row.querySelector('#f-funeral');
+      if(fFuneral){ fFuneral.addEventListener('change', e=>{ state.info.funeralAt = e.target.value; }); fFuneral.addEventListener('click', e=>e.stopPropagation()); }
+      const fPlace = row.querySelector('#f-place');
+      if(fPlace){ fPlace.addEventListener('change', e=>{ state.info.funeralPlace = e.target.value; }); fPlace.addEventListener('click', e=>e.stopPropagation()); }
+
+      const cityToggle = row.querySelector('#city-toggle');
+      if(cityToggle){ cityToggle.onclick = (e)=>{ e.stopPropagation(); state.ui.cityOpen=true; render(); }; }
+      const fCity = row.querySelector('#f-city');
+      if(fCity){ fCity.addEventListener('change', e=>{ state.info.cityName = e.target.value; render(); }); fCity.addEventListener('click', e=>e.stopPropagation()); }
+
+      const expertJump = row.querySelector('.expert-jump');
+      if(expertJump){
+        expertJump.onclick = (e)=>{
+          e.stopPropagation();
+          const k = expertJump.getAttribute('data-expert-key');
+          state.expertJumpTo = k;
+          state.screen = 'experts';
+          render();
+          track('expert_jump', {category:k});
+        };
+      }
+    });
+    targetHolder.appendChild(block);
+  });
+
+  const showAllBtn = document.getElementById('show-all-btn');
+  if(showAllBtn){ showAllBtn.onclick = ()=>{ state.ui.showAll = true; render(); }; }
+
+  document.getElementById('print-btn').onclick = ()=>window.print();
+  document.getElementById('restart-btn').onclick = ()=>{
+    clearProgress();
+    state = {screen:'intro', qIndex:0, answers:{}, info:{deathDate:'', funeralAt:'', funeralPlace:'', cityName:''}, checked:{}, geo:null, geoStatus:'idle', ui:{funeralOpen:false, cityOpen:false, showAll:false}, mood:null, expertJumpTo:null};
+    render();
+  };
+}
+
+loadProgress();
+render();
+</script>
+</body>
+</html>
