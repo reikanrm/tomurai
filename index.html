@@ -278,6 +278,16 @@
     margin-bottom:36px;
     line-height:1.9;
   }
+  .encourage-card{
+    background:#EFF3EF;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:18px 20px;
+    margin:24px 0 36px;
+    text-align:center;
+  }
+  .encourage-title{font-size:15.5px; color:var(--ink); margin-bottom:4px;}
+  .encourage-sub{font-size:14px; color:var(--muted);}
   .funeral-card{
     background:var(--white);
     border:1px solid var(--line);
@@ -792,6 +802,50 @@
   .expert-card-single{max-width:100%;}
   .partner-name{font-size:14px; color:var(--ink); font-weight:500; margin:0 0 8px;}
   .expert-card p{font-size:14.5px; color:var(--muted); margin:0 0 14px;}
+    .reminder-card{
+    background:var(--warm-paper);
+    border:1px solid var(--warm-line);
+    border-radius:3px;
+    padding:20px 22px;
+    margin-bottom:28px;
+  }
+  .reminder-text{font-size:16px; color:var(--ink); margin-bottom:4px;}
+  .reminder-sub{font-size:14px; color:var(--muted); margin-bottom:16px;}
+  .reminder-actions{display:flex; gap:10px;}
+  .reminder-actions .btn{flex:1; padding:12px;}
+  .expert-hint{font-size:13.5px; color:var(--green-soft); margin:10px 0 6px;}
+  .expert-hint.recommend{color:var(--urgent); font-weight:500;}
+  .family-add{display:flex; gap:8px; margin-bottom:20px;}
+  .family-add input{
+    flex:1; padding:12px 14px; border:1px solid var(--line);
+    background:var(--white); font-family:inherit; font-size:15px; border-radius:2px;
+  }
+  .family-add button{flex-shrink:0; padding:12px 20px;}
+  .family-members{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:32px;}
+  .family-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--white); border:1px solid var(--line); border-radius:20px;
+    padding:6px 14px 6px 6px; font-size:14px; color:var(--ink);
+  }
+  .family-avatar{
+    width:24px; height:24px; border-radius:50%;
+    background:var(--green-soft); color:var(--white);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:600;
+  }
+  .family-empty{font-size:14px; color:var(--muted);}
+  .family-items{display:flex; flex-direction:column; gap:10px;}
+  .family-item{
+    background:var(--white); border:1px solid var(--line); border-radius:2px;
+    padding:16px 18px;
+  }
+  .family-item-title{font-size:15.5px; color:var(--ink); margin-bottom:12px;}
+  .family-item-row{display:flex; gap:10px; align-items:center;}
+  .family-select{
+    flex:1; padding:10px 12px; border:1px solid var(--line);
+    background:var(--white); font-family:inherit; font-size:14px; border-radius:2px;
+  }
+  .family-ask-btn{flex-shrink:0; padding:10px 16px; font-size:14px;}
   @media print{
     .step-nav,.footer-actions,.btn{display:none !important;}
   }
@@ -888,11 +942,23 @@ const PROCEDURES = [
     desc:'会社員だった場合、未払いの給与や、死亡退職金・弔慰金が支払われることがあります。',
     contact:'勤務先(人事・総務)', documents:'死亡を証明する書類、振込先口座がわかるもの', memo:'勤務先ごとに規定が異なるため、まずは連絡して確認してください。',
     cond:a=>a.kenpo==='shakaihoken'},
-  {id:'kouyou', cat:'soon', title:'公共料金・携帯電話などの名義変更・解約', deadline:'期限なし・早めに', always:true,
-    desc:'電気・ガス・水道・通信サービスなど、契約ごとに連絡します。',
+  {id:'kouyou', cat:'soon', title:'電気・ガス・水道の名義変更・解約', deadline:'期限なし・早めに', always:true,
+    desc:'契約ごとに連絡します。',
     contact:'各契約会社', documents:'契約者情報、届出人の本人確認書類', memo:'契約を一覧にしてから連絡すると、漏れを防ぎやすくなります。'},
+  {id:'keitai', cat:'soon', title:'携帯電話の解約', deadline:'期限なし・早めに', always:true,
+    desc:'携帯電話には写真やメッセージなど、大切なデータが残っている場合があります。解約する前に、残しておきたいものがないか確認してみてください。',
+    contact:'各携帯電話会社', documents:'契約者情報、届出人の本人確認書類', memo:'契約者本人以外による解約には、死亡が確認できる書類が必要になることが多いです。'},
+  {id:'sns', cat:'soon', title:'SNSアカウントの整理', deadline:'期限なし・急がなくて大丈夫', always:true,
+    desc:'急いで削除する必要はありません。残しておきたい投稿や写真がないか、先に確認してみてください。',
+    contact:'各SNS運営会社', documents:'死亡を確認できる書類(追悼アカウント化などの場合)', memo:'多くのSNSには、アカウントを「追悼アカウント」として残せる仕組みがあります。'},
+  {id:'subscription', cat:'soon', title:'サブスクリプションの解約', deadline:'期限なし・早めに', always:true,
+    desc:'継続している支払いがないか、解約前に確認しておくと安心です。',
+    contact:'各サービス提供会社', documents:'契約者情報、支払い方法の情報', memo:'クレジットカードに紐づく契約は、カード自体の解約前に洗い出しておくとスムーズです。'},
+  {id:'ihin', cat:'soon', title:'遺品整理', deadline:'期限なし・落ち着いてから', always:true,
+    desc:'思い出の品を手放す準備ができていなくても大丈夫です。今すぐ整理する必要があるものだけ確認しましょう。',
+    contact:'遺品整理業者(依頼する場合)', documents:'なし', memo:'賃貸物件の退去期限がある場合は、その期限だけ先に確認しておくと安心です。'},
   {id:'card', cat:'soon', title:'クレジットカードの解約', deadline:'期限なし・早めに', always:true,
-    desc:'カード会社へ連絡し、未払い分の精算方法を確認します。',
+    desc:'カード会社へ連絡し、未払い分の精算方法を確認します。継続している支払いがないか、解約前に確認しておくと安心です。',
     contact:'カード会社', documents:'届出人の本人確認書類', memo:'未払い分は相続財産から精算されることが多いです。'},
   {id:'seimeihoken', cat:'soon', title:'生命保険金の請求', deadline:'請求期限は3年が目安(かんぽ生命は5年)',
     desc:'保険会社に連絡し、必要書類を確認します。加入先がわからない場合は、生命保険協会が窓口となって加盟社に一括で契約の有無を照会してくれる制度があります(有料)。',
@@ -901,10 +967,10 @@ const PROCEDURES = [
     cond:a=>a.seimeihoken==='yes'||a.seimeihoken==='unknown'},
 
   // 3ヶ月以内
-  {id:'houki', cat:'m3', title:'相続放棄・限定承認の検討', deadline:'3ヶ月以内', always:true,
+   {id:'houki', cat:'m3', title:'相続放棄・限定承認の検討', deadline:'3ヶ月以内', always:true,
     desc:'借金などマイナスの財産がある場合、家庭裁判所への申述が必要です。期限が短いため早めの判断が重要です。',
     contact:'弁護士・司法書士、家庭裁判所', documents:'申述書、戸籍謄本など', memo:'財産調査が間に合わない場合、期間を延ばす申立てができることもあります。早めに専門家へ相談してください。',
-    expertKey:'legal'},
+    expertKey:'legal', expertHint:'recommend', expertHintText:'このケースでは、司法書士・弁護士への相談をおすすめします。'},
 
   // 4ヶ月以内
   {id:'junkakutei', cat:'m4', title:'準確定申告', deadline:'4ヶ月以内',
@@ -923,7 +989,7 @@ const PROCEDURES = [
   {id:'bunkatsu', cat:'m10', title:'遺産分割協議', deadline:'目安10ヶ月以内',
     desc:'相続人全員で財産の分け方を話し合います。相続人が複数いる場合は早めに始めることをおすすめします。',
     contact:'司法書士・弁護士', documents:'戸籍謄本一式、財産目録', memo:'相続人が一人でも欠けると協議は無効になります。全員の参加が必要です。',
-    expertKey:'legal',
+    expertKey:'legal', expertHint:'recommend', expertHintText:'相続人が複数いるケースでは、司法書士・弁護士への相談をおすすめします。',
     cond:a=>a.souzokunin==='multiple'},
 
   // 3年以内
@@ -986,7 +1052,7 @@ const MOODS = [
    状態
 --------------------------------------------------------- */
 let state = {
-  screen:'intro',   // intro | question | home | results | grief
+  screen:'intro',   // intro | question | home | results | grief | family
   qIndex:0,
   answers:{},
   info:{deathDate:'', funeralAt:'', funeralPlace:'', cityName:''},
@@ -996,6 +1062,9 @@ let state = {
   ui:{funeralOpen:false, cityOpen:false, showAll:false},
   mood:null,
   expertJumpTo:null,
+  reminders:{},      // {shijuku:{status,dismissedAt}, isshuki:{status,dismissedAt}}
+  family:[],         // [{id, name}]
+  assignments:{},    // {procedureId: familyId}
 };
 
 /* ---- この端末への自動保存(アカウント不要) ---- */
@@ -1010,6 +1079,9 @@ function saveProgress(){
       mood: state.mood,
       qIndex: state.qIndex,
       screen: (state.screen==='intro' || state.screen==='question') ? state.screen : 'home',
+      reminders: state.reminders,
+      family: state.family,
+      assignments: state.assignments,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   }catch(e){ /* 保存できない環境では何もしない */ }
@@ -1027,6 +1099,9 @@ function loadProgress(){
     state.mood = saved.mood || null;
     state.qIndex = saved.qIndex || 0;
     state.screen = (saved.screen==='question') ? 'question' : 'home';
+    state.reminders = saved.reminders || {};
+    state.family = saved.family || [];
+    state.assignments = saved.assignments || {};
     return true;
   }catch(e){ return false; }
 }
@@ -1051,6 +1126,7 @@ function track(name, props){
 const TABS = [
   {id:'home', label:'ホーム'},
   {id:'results', label:'手続き一覧'},
+  {id:'family', label:'家族で分担'},
   {id:'experts', label:'専門家に相談'},
   {id:'grief', label:'こころのケア'},
 ];
@@ -1078,6 +1154,7 @@ function render(){
   else if(state.screen==='grief') renderGrief();
   else if(state.screen==='results') renderResults();
   else if(state.screen==='experts') renderExperts();
+  else if(state.screen==='family') renderFamily();
   else renderHome();
   saveProgress();
 }
@@ -1271,6 +1348,45 @@ function formatJP(d){
   return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
 }
 
+function reminderWindow(targetDate){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.round((targetDate - today)/86400000);
+  return diffDays <= 7 && diffDays >= -14;
+}
+
+function getActiveReminder(){
+  if(!state.info.deathDate || state.answers.shukyou!=='yes') return null;
+  const candidates = [
+    {key:'shijuku', date:addDays(state.info.deathDate, 48), label:'四十九日', targetId:'hoyo-shijukunichi'},
+    {key:'isshuki', date:addYears(state.info.deathDate, 1), label:'一周忌', targetId:'hoyo-isshuki'},
+  ];
+  for(const c of candidates){
+    if(!reminderWindow(c.date)) continue;
+    const r = state.reminders[c.key];
+    if(r && r.status==='confirmed') continue;
+    if(r && r.status==='dismissed'){
+      const days = Math.round((new Date() - new Date(r.dismissedAt+'T00:00:00'))/86400000);
+      if(days < 3) continue;
+    }
+    return c;
+  }
+  return null;
+}
+
+function renderReminderCard(){
+  const rem = getActiveReminder();
+  if(!rem) return '';
+  return `
+  <div class="reminder-card">
+    <div class="reminder-text">${rem.label}が近づいています。</div>
+    <div class="reminder-sub">必要であれば、準備することを一緒に確認できます。</div>
+    <div class="reminder-actions">
+      <button class="btn" id="reminder-confirm" data-k="${rem.key}" data-target="${rem.targetId}">確認する</button>
+      <button class="btn btn-ghost" id="reminder-dismiss" data-k="${rem.key}">今はしない</button>
+    </div>
+  </div>`;
+}
+
 function buildHoyoItems(){
   if(state.answers.shukyou!=='yes' && state.answers.shukyou!=='other') return [];
   const hasDate = !!state.info.deathDate;
@@ -1341,6 +1457,7 @@ function renderHome(){
   el.className='home';
   el.innerHTML = `
     <div class="home-greeting">${timeGreeting()}</div>
+    ${renderReminderCard()}
     <div class="progress-card">
       ${state.info.deathDate
         ? `<div class="progress-card-lead">ご逝去から${daysSince(state.info.deathDate)}日が経過しました</div>`
@@ -1381,6 +1498,29 @@ function renderHome(){
     <button class="clear-data-link" id="clear-data-btn">この端末のデータを消去</button>
   `;
   app.appendChild(el);
+    const remConfirm = document.getElementById('reminder-confirm');
+  if(remConfirm){
+    remConfirm.onclick = ()=>{
+      const k = remConfirm.getAttribute('data-k');
+      const target = remConfirm.getAttribute('data-target');
+      state.reminders[k] = {status:'confirmed'};
+      state.screen = 'results';
+      state.ui.showAll = true;
+      render();
+      setTimeout(()=>{
+        const el = document.getElementById(target);
+        if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+      }, 50);
+    };
+  }
+  const remDismiss = document.getElementById('reminder-dismiss');
+  if(remDismiss){
+    remDismiss.onclick = ()=>{
+      const k = remDismiss.getAttribute('data-k');
+      state.reminders[k] = {status:'dismissed', dismissedAt:new Date().toISOString().slice(0,10)};
+      render();
+    };
+  }
   document.getElementById('home-continue').onclick = ()=>{ state.screen='results'; render(); };
   const seeAll = document.getElementById('home-see-all');
   if(seeAll){ seeAll.onclick = ()=>{ state.screen='results'; render(); }; }
@@ -1527,6 +1667,85 @@ function renderExperts(){
   }
 }
 
+/* ---- 家族で分担 ---- */
+function familyInitial(name){ return name ? name.slice(0,1) : '？'; }
+
+function renderFamily(){
+  app.appendChild(renderTabBar('family'));
+  const grouped = buildChecklist();
+  const allItems = Object.values(grouped).flat().filter(it=>!it.noCheck && !state.checked[it.id]);
+
+  const el = document.createElement('div');
+  el.className='family';
+  el.innerHTML = `
+    <div class="results-head"><h2>家族で分担する</h2></div>
+    <div class="results-sub">一人で抱えなくて大丈夫です。手続きを家族にお願いできます。</div>
+
+    <div class="family-add">
+      <input type="text" id="family-name" placeholder="例: 母、弟、〇〇さん">
+      <button class="btn" id="family-add-btn">追加する</button>
+    </div>
+
+    <div class="family-members">
+      ${state.family.length ? state.family.map(m=>`
+        <span class="family-chip"><span class="family-avatar">${familyInitial(m.name)}</span>${m.name}</span>
+      `).join('') : '<span class="family-empty">まだ誰も追加されていません。</span>'}
+    </div>
+
+    <div class="family-items">
+      ${allItems.length ? allItems.map(it=>{
+        const assignedId = state.assignments[it.id] || '';
+        return `
+        <div class="family-item">
+          <div class="family-item-title">${it.title}</div>
+          <div class="family-item-row">
+            <select class="family-select" data-id="${it.id}">
+              <option value="">自分が担当</option>
+              ${state.family.map(m=>`<option value="${m.id}" ${assignedId===m.id?'selected':''}>${m.name}にお願いする</option>`).join('')}
+            </select>
+            ${assignedId ? `<button class="btn btn-ghost family-ask-btn" data-id="${it.id}">お願いする</button>` : ''}
+          </div>
+        </div>`;
+      }).join('') : '<p class="home-empty">今のところ、分担できる手続きはありません。</p>'}
+    </div>
+  `;
+  app.appendChild(el);
+
+  document.getElementById('family-add-btn').onclick = ()=>{
+    const input = document.getElementById('family-name');
+    const name = input.value.trim();
+    if(!name) return;
+    state.family.push({id:'fam-'+Date.now(), name});
+    render();
+  };
+
+  el.querySelectorAll('.family-select').forEach(sel=>{
+    sel.onchange = ()=>{
+      const id = sel.getAttribute('data-id');
+      if(sel.value) state.assignments[id] = sel.value; else delete state.assignments[id];
+      render();
+    };
+  });
+
+  el.querySelectorAll('.family-ask-btn').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = btn.getAttribute('data-id');
+      const item = allItems.find(it=>it.id===id);
+      const text = `${item.title}について、代わりに確認してもらえますか？`;
+      if(navigator.share){
+        try{ await navigator.share({text}); }catch(e){}
+      } else {
+        try{
+          await navigator.clipboard.writeText(text);
+          btn.textContent = 'コピーしました';
+          setTimeout(()=>{ btn.textContent = 'お願いする'; }, 1500);
+        }catch(e){}
+      }
+      track('family_ask', {item:id});
+    };
+  });
+}
+
 /* ---- RESULTS ---- */
 function buildChecklist(){
   const base = PROCEDURES.filter(p => p.always || (p.cond && p.cond(state.answers)));
@@ -1565,7 +1784,12 @@ function renderResults(){
       ${state.geoStatus==='denied'? `<div class="geo-note">位置情報が許可されなかったため、地名なしの一般検索になっています。</div>`:''}
       ${state.geoStatus==='loading'? `<div class="geo-note">取得中です…</div>`:''}
     </div>
-    <div id="categories"></div>
+       <div id="categories"></div>
+    ${(doneCount>=1 && doneCount<=2) ? `
+    <div class="encourage-card">
+      <div class="encourage-title">大切な手続きがひとつ終わりました。</div>
+      <div class="encourage-sub">今日はここまででも大丈夫です。</div>
+    </div>` : ''}
     ${laterCount? `
     <div class="later-toggle">
       ${state.ui.showAll
@@ -1646,7 +1870,10 @@ function renderResults(){
             <div class="row"><span class="label">メモ</span><span class="val">${it.memo||'—'}</span></div>
           </div>
           ${it.link? `<a class="link" href="${it.link.url}" target="_blank" rel="noopener">${it.link.label} →</a>`:''}
-          ${it.expertKey? `<a class="link expert-jump" data-expert-key="${it.expertKey}">専門家に相談する →</a>`:''}
+          ${it.expertKey? `
+            <div class="expert-hint ${it.expertHint==='recommend'?'recommend':''}">${it.expertHint==='recommend' ? it.expertHintText : '現時点では、ご自身で進められる可能性があります。'}</div>
+            <a class="link expert-jump" data-expert-key="${it.expertKey}">専門家に相談する →</a>
+          `:''}
           ${expandHtml}
         </div>
       `;
