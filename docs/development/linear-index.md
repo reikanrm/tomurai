@@ -36,6 +36,11 @@
 | E02A-6 | [TOM-28](https://linear.app/aitane/issue/TOM-28) | 担当者アバター・ケア/専門家画面の書体・寸法をモックへ合わせる |
 | E02A-7 | [TOM-29](https://linear.app/aitane/issue/TOM-29) | Windows内の専用Androidエミュレーター・Expo Go起動・再起動手順 |
 | E02A-8 | [TOM-30](https://linear.app/aitane/issue/TOM-30) | オンボーディング・ホームの円相をロゴに合わせた黒へ統一 |
+| E04-1 | [TOM-31](https://linear.app/aitane/issue/TOM-31) | Sep9改善リスト監査・仕様設計ADR/SSOT先行更新 |
+| E04-2 | [TOM-32](https://linear.app/aitane/issue/TOM-32) | 初七日・四十九日・納骨・返礼の条件付きタスク |
+| E04-3 | [TOM-33](https://linear.app/aitane/issue/TOM-33) | 相続の独立注意・画面内リマインド・遺品整理の警告 |
+| E04-4 | [TOM-34](https://linear.app/aitane/issue/TOM-34) | 9節目メッセージ・こころのケア補足 |
+| E04-5 | [TOM-35](https://linear.app/aitane/issue/TOM-35) | 全画面の開発プレビュー・サンプル表示除去 |
 
 Eは作業群で、そのまま1回のTAKT入力にしない。着手時に子チケットへ分割する。
 Gは公開前に必要な実証・承認で、一括仕様承認だけではDoneにならない。
