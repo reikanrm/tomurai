@@ -1,0 +1,17 @@
+{
+  "name": "tomurai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*"],
+  "engines": {
+    "node": ">=22.21.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check-baseline.mjs",
+    "typecheck": "npm run typecheck --workspace @tomurai/mobile",
+    "web": "npm run web --workspace @tomurai/mobile",
+    "build:web": "npm run build:web --workspace @tomurai/mobile"
+  }
+}

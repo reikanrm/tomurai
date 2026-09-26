@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.expo/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.local
+.expo/
+coverage/
+.takt/runs/
+.takt/tasks/
+.takt/logs/
+.takt/reports/
+.takt/sessions/
+.takt/state/
+.takt/context/

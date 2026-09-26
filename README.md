@@ -1,0 +1,33 @@
+# Tomurai
+
+必要な死後手続きを絞り込み、家族で分担するモバイルアプリ。
+
+## 現在地（2026-09-26）
+
+決定責任者：テックリード・會田純一朗。開発は `dev`。PO用の `main` と既存HTMLは変更しません。
+React Nativeのフロントを実装中です。API・認証・保存・家族同期・本番接続は未実装です。
+
+- [SSOT：プロダクト要件](docs/ssot/product-requirements.md)：R01–R48。家族人数上限なし、3人目以降追加料金なし、AIは家族共通枠。
+- [SSOT：権限境界](docs/ssot/authorization-and-entitlements.md)／[契約状態遷移](docs/ssot/billing-transitions.md)
+- [仕様・設計サイト](https://github.com/JunichiroAita/tomurai-docs)：画面ごとの説明と同じフロントのプレビュー。Figmaは使用しません。
+- [Linear索引](docs/development/linear-index.md)：作業群・公開条件・小タスク
+- [TAKT手順](docs/development/TAKT.md)／[小タスク様式](docs/development/task-template.md)
+
+## ローカル検査
+
+Node.js 22.21.0以上。初回は `npm ci`。外部サービスの認証は不要です。
+
+```powershell
+npm test
+npm run check
+npm run typecheck
+npm run build:web
+takt workflow doctor .takt/workflows/tomurai-small-change.yaml
+```
+
+単体/型/Webビルドの検査は、ネイティブ実機・認可・決済・復旧の合格を意味しません。
+G01–G06は未達です。クラウド契約、実決済、実通知、公開は別の確認を要します。
+
+ブラウザー確認は `npm run web`。質問・4タブ・担当/完了はメモリ内のサンプル操作です。
+招待・質問に基づく正式な絞り込みは未接続です。実際の個人情報を入力しないでください。
+React Native / TypeScript / Expo Development Build とGCPを前提にし、DBは原価・復旧の検証後にADRで確定します。

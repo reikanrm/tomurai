@@ -1,0 +1,99 @@
+name: tomurai-small-change
+description: Tomuraiの1子チケットを計画・テスト先行・実装・レビュー・再検証し人の確認へ渡す
+max_steps: 12
+initial_step: plan
+workflow_config:
+  provider: mock
+policies:
+  tomurai-safety: |
+    Read AGENTS.md and docs/ssot/product-requirements.md completely.
+    Work only on the scoped child ticket with synthetic data.
+    Never change approved business rules or claim a release gate is passed without evidence.
+    No paid resources, real messages, payments, production data, secret access, commit, push, PR, merge, deployment, or Linear writes.
+    Preserve the existing public HTML and unrelated edits.
+    No family count cap; no extra fee for member 3+; no AI allowance growth by membership.
+    COMPLETE means ready for human review only, not release approval.
+steps:
+  - name: plan
+    edit: false
+    persona: planner
+    policy: tomurai-safety
+    instruction: |
+      Read the child ticket and baseline. Identify changed paths, C/R requirements, failure cases, exact test commands and applicable G gates.
+      Do not invent missing business decisions. If scope requires a new such decision or unavailable authority, ABORT with the narrow blocker.
+    rules:
+      - condition: Scope is explicit and local implementation can proceed
+        next: write_tests
+      - condition: New business decision or required authority is missing
+        next: ABORT
+  - name: write_tests
+    edit: true
+    persona: coder
+    policy: tomurai-safety
+    instruction: |
+      Write focused tests for this ticket, including negative boundaries, and execute them.
+      Record real pre-change failure evidence. For a documentation-only ticket, implement document consistency checks and state their limited coverage.
+      Never report a command as executed when it was not. If tests cannot be made meaningful, ABORT.
+    rules:
+      - condition: Meaningful tests and pre-change evidence are recorded
+        next: implement
+      - condition: Required tests cannot be established
+        next: ABORT
+  - name: implement
+    edit: true
+    persona: coder
+    policy: tomurai-safety
+    instruction: |
+      Implement only the scoped change and run the relevant tests plus npm test and npm run check.
+      Do not bypass checks, silently loosen assertions, or broaden external permissions.
+      Report changed paths and actual command results.
+    rules:
+      - condition: Scoped implementation is ready for review
+        next: review
+      - condition: Implementation requires a new decision or unavailable authority
+        next: ABORT
+  - name: review
+    edit: false
+    persona: architecture-reviewer
+    session: refresh
+    policy: tomurai-safety
+    instruction: |
+      Inspect the actual diff and tests independently of implementation claims.
+      Check requirements, server authorization, family count and fees, shared AI allowance, deletion, failure cases, and scope.
+      Read-only diagnostic commands are allowed. List actionable findings or explain why none remain.
+    rules:
+      - condition: No unresolved requirements or actionable findings
+        next: verify
+      - condition: Findings can be fixed within approved scope
+        next: fix
+      - condition: Requirements need an unapproved business change
+        next: ABORT
+  - name: fix
+    edit: true
+    persona: coder
+    policy: tomurai-safety
+    instruction: |
+      Resolve the review or verification failures without weakening requirements or deleting tests to hide them.
+      Run focused regression tests and document the evidence. A blocked fix is ABORT, not success.
+    rules:
+      - condition: All identified fixes are ready for review
+        next: review
+      - condition: Fix cannot be completed in scope
+        next: ABORT
+  - name: verify
+    edit: false
+    persona: supervisor
+    session: refresh
+    policy: tomurai-safety
+    instruction: |
+      Run npm test, npm run check and the ticket-specific checks yourself, including workflow doctor if workflow changed.
+      Read the final diff, check for secrets and unintended HTML edits, and record commands, results and limits of verification.
+      List pending G gates and required human review. Do not mutate the repository or Linear status.
+      COMPLETE is a handoff, not automatic release or completion of unexecuted integration tests.
+    rules:
+      - condition: All scoped checks actually passed and handoff evidence is complete
+        next: COMPLETE
+      - condition: A scoped verification check failed and is fixable
+        next: fix
+      - condition: Verification cannot be performed or scope needs a decision
+        next: ABORT
