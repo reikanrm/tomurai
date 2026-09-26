@@ -72,6 +72,20 @@ test('access wiring: no task content is passed to locked decoration', () => {
   assert.match(app, /taskAccess\.hasLocked && action \? <LockedTasks/);
 });
 
+test('locked background uses public task text and the normal row geometry without stretching', () => {
+  const gate = readFileSync('apps/mobile/src/components/AccessGate.tsx', 'utf8');
+  assert.match(gate, /taskRowMetrics as row, publicPreviewTitles, wrapPreviewTitle, rowHeightFromLines/);
+  assert.match(app, /taskRowMetrics as row/);
+  assert.match(gate, /onLayout=\{event => setWidth\(event\.nativeEvent\.layout\.width\)\}/);
+  assert.match(gate, /<Svg width=\{width\} height=\{backgroundHeight\}/);
+  assert.doesNotMatch(gate, /preserveAspectRatio="none"/);
+  assert.match(gate, /<SvgText[\s\S]*?fontFamily=\{fonts\.medium\} fontSize=\{row\.titleFontSize\}/);
+  assert.match(gate, /日付は個別に確認/);
+  assert.match(gate, /担当：未割当/);
+  assert.match(gate, /pointerEvents="none" accessible=\{false\}/);
+  assert.match(app, /itemTitle: \{ fontFamily: fonts\.medium, fontSize: row\.titleFontSize/);
+});
+
 test('access wiring: answer ownership is enforced separately and pending safety guidance is generic', () => {
   assert.match(app, /const canAnswer = canEditAnswers\(access\)/);
   assert.match(app, /screen === 'onboarding' && canAnswer && <Onboarding/);

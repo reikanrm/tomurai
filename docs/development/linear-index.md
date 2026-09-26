@@ -46,6 +46,7 @@
 | E04-7 | [TOM-40](https://linear.app/aitane/issue/TOM-40) | 死亡日の質問の初期カレンダー展開を停止 |
 | E02A-10 | [TOM-38](https://linear.app/aitane/issue/TOM-38) | Android開発専用の権限・プラン切替 |
 | E03-1 | [TOM-39](https://linear.app/aitane/issue/TOM-39) | 固定無料2件・ぼかし・契約者/家族別の未接続導線 |
+| E03-2 | [TOM-41](https://linear.app/aitane/issue/TOM-41) | ぼかし背景を通常タスクと同じ行表示へ変更 |
 
 Eは作業群で、そのまま1回のTAKT入力にしない。着手時に子チケットへ分割する。
 Gは公開前に必要な実証・承認で、一括仕様承認だけではDoneにならない。

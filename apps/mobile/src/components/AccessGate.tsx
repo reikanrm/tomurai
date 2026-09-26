@@ -1,9 +1,10 @@
 import { useEffect, useId, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, FeGaussianBlur, Filter, G, Path, Rect } from 'react-native-svg';
+import Svg, { Defs, FeGaussianBlur, Filter, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { Locale } from '../data/questions';
-import { colors as c, fonts } from '../theme';
+import { colors as c, font, fonts } from '../theme';
+import { taskRowMetrics as row, publicPreviewTitles, wrapPreviewTitle, rowHeightFromLines } from '../domain/task-row-layout';
 
 type Action = 'checkout' | 'request';
 type LockedTasksProps = { locale: Locale; action: Action; onPress: () => void };
@@ -11,28 +12,51 @@ type AccessSheetProps = {
   visible: boolean; locale: Locale; action: Action; activeMemberCount: number; onClose: () => void;
 };
 
-/** Decorative placeholders only: never accept hidden task data or their count. */
+/** Public task-row preview only: never accept hidden tasks or their count. */
 export function LockedTasks({ locale, action, onPress }: LockedTasksProps) {
   const filterId = `locked-tasks-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [focused, setFocused] = useState(false);
+  const [width, setWidth] = useState(0);
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
-  return <View style={s.locked}>
+  const textX = row.checkboxSize + row.rowGap;
+  let backgroundHeight = 0;
+  const backgroundRows = [...publicPreviewTitles, ...publicPreviewTitles.slice(0, 1)].map((title, index) => {
+    const lines = wrapPreviewTitle(title[locale], Math.max(1, width - textX - 4));
+    const height = rowHeightFromLines(lines.length);
+    const top = backgroundHeight;
+    backgroundHeight += height;
+    return { index, top, height, lines };
+  });
+  return <View style={[s.locked, width > 0 && { minHeight: backgroundHeight }]}
+    onLayout={event => setWidth(event.nativeEvent.layout.width)}>
     <View style={StyleSheet.absoluteFill} pointerEvents="none" accessible={false}
       accessibilityElementsHidden importantForAccessibility="no-hide-descendants" aria-hidden>
-      <Svg width="100%" height="100%" viewBox="0 0 360 330" preserveAspectRatio="none" accessible={false}>
-        <Defs><Filter id={filterId} x="-15%" y="-15%" width="130%" height="130%">
-          <FeGaussianBlur stdDeviation={4.5} />
+      {width > 0 && <Svg width={width} height={backgroundHeight} accessible={false}>
+        <Defs><Filter id={filterId} x="-5%" y="-5%" width="110%" height="110%">
+          <FeGaussianBlur stdDeviation={3} />
         </Filter></Defs>
-        <G filter={`url(#${filterId})`} fill={c.muted} opacity={0.28}>
-          {[26, 104, 182, 260].map((y, index) => <G key={y}>
-            <Rect x={9} y={y + 10} width={15} height={15} rx={3} />
-            <Rect x={42} y={y} width={index % 2 === 0 ? 86 : 116} height={7} rx={3} />
-            <Rect x={42} y={y + 17} width={index % 2 === 0 ? 224 : 188} height={10} rx={4} />
-            <Rect x={42} y={y + 39} width={142} height={7} rx={3} />
-            <Rect x={324} y={y + 11} width={21} height={21} rx={11} />
-          </G>)}
+        <G filter={`url(#${filterId})`} opacity={0.7}>
+          {backgroundRows.map(({ index, top, height, lines }) => {
+            const metaY = top + row.rowPadding + row.metaFontSize + 2;
+            const titleY = top + row.rowPadding + row.metaLineHeight + row.metaGap + row.titleFontSize + 2;
+            const assigneeY = top + height - row.rowPadding - row.rowBorderWidth - 5;
+            return <G key={index}>
+              <Rect x={row.checkboxBorderWidth / 2} y={top + row.rowPadding + row.checkboxTop + row.checkboxBorderWidth / 2}
+                width={row.checkboxSize - row.checkboxBorderWidth} height={row.checkboxSize - row.checkboxBorderWidth}
+                rx={row.checkboxRadius} fill="none" stroke={c.greenSoft} strokeWidth={row.checkboxBorderWidth} />
+              <SvgText x={textX} y={metaY} fontFamily={font} fontSize={row.metaFontSize} fill={c.green}>
+                {t('日付は個別に確認', 'Check timing individually')}
+              </SvgText>
+              {lines.map((line, lineIndex) => <SvgText key={lineIndex} x={textX} y={titleY + lineIndex * row.titleLineHeight}
+                fontFamily={fonts.medium} fontSize={row.titleFontSize} fill={c.ink}>{line}</SvgText>)}
+              <SvgText x={textX} y={assigneeY} fontFamily={font} fontSize={row.assigneeFontSize} fill={c.muted}>
+                {t('担当：未割当', 'Assigned: Unassigned')}
+              </SvgText>
+              <Line x1={0} x2={width} y1={top + height - 0.5} y2={top + height - 0.5} stroke={c.line} strokeWidth={row.rowBorderWidth} />
+            </G>;
+          })}
         </G>
-      </Svg>
+      </Svg>}
     </View>
     <View style={s.gateCard}>
       <View style={s.lockMark} accessible={false} aria-hidden>
@@ -126,7 +150,7 @@ export function AccessSheet({ visible, locale, action, activeMemberCount, onClos
 }
 
 const s = StyleSheet.create({
-  locked: { marginTop: 12, minHeight: 330, paddingHorizontal: 12, paddingVertical: 44, justifyContent: 'center', overflow: 'hidden' },
+  locked: { minHeight: 515, paddingHorizontal: 12, paddingVertical: 103, justifyContent: 'center', overflow: 'hidden' },
   gateCard: { paddingHorizontal: 20, paddingVertical: 24, backgroundColor: c.paper, borderWidth: 1, borderColor: c.line, borderRadius: 8, alignItems: 'center' },
   lockMark: { marginBottom: 14 },
   gateTitle: { fontFamily: fonts.medium, fontSize: 17, lineHeight: 29, color: c.ink, textAlign: 'center', marginBottom: 10 },

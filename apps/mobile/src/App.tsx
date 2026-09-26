@@ -23,6 +23,7 @@ import { googleMapsSearchUrl } from './domain/maps';
 import { navigationIcons } from './data/navigation';
 import type { Locale } from './data/questions';
 import { colors as c, font, fonts } from './theme';
+import { taskRowMetrics as row } from './domain/task-row-layout';
 
 type Screen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care' | 'guidance';
 const screens: Screen[] = ['onboarding', 'home', 'tasks', 'specialists', 'care', 'guidance'];
@@ -140,7 +141,7 @@ function Tomurai() {
     <View style={[s.checkbox, task.done && s.checked]}><Text style={s.checkmark}>{task.done ? '✓' : ''}</Text></View>
     <View style={{ flex: 1 }}><Text style={s.itemMeta}>{task.done ? t('完了', 'Done') : `${taskDate(task)}${task.optional ? t(' · 任意', ' · Optional') : ''}`}</Text>
       <Text style={[s.itemTitle, task.done && s.completedText]}>{task.title[locale]}</Text>
-      <Text style={s.secondary}>{t('担当：', 'Assigned: ')}{name(task.assignee)}</Text></View>
+      <Text style={s.itemAssignee}>{t('担当：', 'Assigned: ')}{name(task.assignee)}</Text></View>
     {task.assignee && <View style={s.avatar} accessible={false} aria-hidden>
       <Text style={s.avatarText}>{assigneeInitial(task.assignee, locale)}</Text>
     </View>}
@@ -288,12 +289,13 @@ const s = StyleSheet.create({
   title: { fontFamily: fonts.bold, fontSize: 22, color: c.ink, marginBottom: 6, lineHeight: 32 },
   copy: { fontFamily: fonts.regular, color: c.muted, fontSize: 14, lineHeight: 25.9, marginBottom: 26 },
   section: { fontFamily: fonts.medium, color: c.ink, fontSize: 14.5, lineHeight: 21, borderBottomWidth: 1, borderColor: c.line, paddingBottom: 10, marginTop: 34, marginBottom: 4 },
-  item: { flexDirection: 'row', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderColor: c.line, minHeight: 78 },
-  checkbox: { width: 19, height: 19, borderWidth: 1.5, borderColor: c.greenSoft, borderRadius: 3, marginTop: 2, justifyContent: 'center', alignItems: 'center' },
+  item: { flexDirection: 'row', gap: row.rowGap, paddingVertical: row.rowPadding, borderBottomWidth: row.rowBorderWidth, borderColor: c.line, minHeight: row.minHeight },
+  checkbox: { width: row.checkboxSize, height: row.checkboxSize, borderWidth: row.checkboxBorderWidth, borderColor: c.greenSoft, borderRadius: row.checkboxRadius, marginTop: row.checkboxTop, justifyContent: 'center', alignItems: 'center' },
   checked: { backgroundColor: c.green }, checkmark: { color: c.white, fontSize: 14 },
-  itemMeta: { fontFamily: font, fontSize: 11, color: c.green, marginBottom: 5, lineHeight: 18 },
-  itemTitle: { fontFamily: fonts.medium, fontSize: 15, color: c.ink, lineHeight: 22, marginBottom: 4 },
-  avatar: { width: 24, height: 24, flexShrink: 0, borderRadius: 12, borderWidth: 1, borderColor: c.line, backgroundColor: c.paperDeep, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
+  itemMeta: { fontFamily: font, fontSize: row.metaFontSize, color: c.green, marginBottom: row.metaGap, lineHeight: row.metaLineHeight },
+  itemTitle: { fontFamily: fonts.medium, fontSize: row.titleFontSize, color: c.ink, lineHeight: row.titleLineHeight, marginBottom: row.titleGap },
+  itemAssignee: { fontFamily: font, fontSize: row.assigneeFontSize, color: c.muted, lineHeight: row.assigneeLineHeight },
+  avatar: { width: row.avatarSize, height: row.avatarSize, flexShrink: 0, borderRadius: row.avatarSize / 2, borderWidth: 1, borderColor: c.line, backgroundColor: c.paperDeep, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontFamily: font, fontSize: 9.5, lineHeight: 14, color: c.muted },
   completedText: { textDecorationLine: 'line-through', color: c.muted },
   secondary: { fontFamily: font, fontSize: 12, color: c.muted, lineHeight: 21 }, chevron: { fontSize: 22, color: c.greenSoft, alignSelf: 'center' },
