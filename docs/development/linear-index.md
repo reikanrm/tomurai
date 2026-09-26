@@ -41,6 +41,7 @@
 | E04-3 | [TOM-33](https://linear.app/aitane/issue/TOM-33) | 相続の独立注意・画面内リマインド・遺品整理の警告 |
 | E04-4 | [TOM-34](https://linear.app/aitane/issue/TOM-34) | 9節目メッセージ・こころのケア補足 |
 | E04-5 | [TOM-35](https://linear.app/aitane/issue/TOM-35) | 全画面の開発プレビュー・サンプル表示除去 |
+| E02A-9 | [TOM-36](https://linear.app/aitane/issue/TOM-36) | 円相ロゴだけを50%に縮小（初回66/ホーム58） |
 
 Eは作業群で、そのまま1回のTAKT入力にしない。着手時に子チケットへ分割する。
 Gは公開前に必要な実証・承認で、一括仕様承認だけではDoneにならない。
