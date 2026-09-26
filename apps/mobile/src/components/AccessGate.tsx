@@ -33,7 +33,7 @@ export function LockedTasks({ locale, action, onPress }: LockedTasksProps) {
       accessibilityElementsHidden importantForAccessibility="no-hide-descendants" aria-hidden>
       {width > 0 && <Svg width={width} height={backgroundHeight} accessible={false}>
         <Defs><Filter id={filterId} x="-5%" y="-5%" width="110%" height="110%">
-          <FeGaussianBlur stdDeviation={3} />
+          <FeGaussianBlur stdDeviation={6} />
         </Filter></Defs>
         <G filter={`url(#${filterId})`} opacity={0.7}>
           {backgroundRows.map(({ index, top, height, lines }) => {

@@ -62,6 +62,7 @@ test('access wiring: preparation sheets cannot charge, send or grant access', ()
   assert.equal((gate.match(/disabled accessibilityState=\{\{ disabled: true \}\}/g) ?? []).length, 2);
   assert.match(gate, /importantForAccessibility="no-hide-descendants" aria-hidden/);
   assert.match(gate, /FeGaussianBlur/);
+  assert.match(gate, /<FeGaussianBlur stdDeviation=\{6\} \/>/);
 });
 
 test('access wiring: no task content is passed to locked decoration', () => {
