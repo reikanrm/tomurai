@@ -43,6 +43,7 @@
 | E04-5 | [TOM-35](https://linear.app/aitane/issue/TOM-35) | 全画面の開発プレビュー・サンプル表示除去 |
 | E02A-9 | [TOM-36](https://linear.app/aitane/issue/TOM-36) | 円相ロゴだけを50%に縮小（初回66/ホーム58） |
 | E04-6 | [TOM-37](https://linear.app/aitane/issue/TOM-37) | 死亡日・法要予定日の共通カレンダーと操作性改善 |
+| E04-7 | [TOM-40](https://linear.app/aitane/issue/TOM-40) | 死亡日の質問の初期カレンダー展開を停止 |
 | E02A-10 | [TOM-38](https://linear.app/aitane/issue/TOM-38) | Android開発専用の権限・プラン切替 |
 | E03-1 | [TOM-39](https://linear.app/aitane/issue/TOM-39) | 固定無料2件・ぼかし・契約者/家族別の未接続導線 |
 

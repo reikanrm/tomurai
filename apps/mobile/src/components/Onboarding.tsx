@@ -51,7 +51,7 @@ export function Onboarding({ locale, onConfirm, initialAnswers = {} }: {
       <Text style={s.copy}>{t('わかる範囲で、お聞かせください。', 'Answer with what you know for now.')}</Text>
       {question.id === 'deathDate' ? <>
         <CalendarDateField locale={locale} label={t('亡くなった日', 'Date of death')}
-          value={selected === 'unknown' ? '' : selected ?? ''} onChange={choose} maxDate={today} initialOpen />
+          value={selected === 'unknown' ? '' : selected ?? ''} onChange={choose} maxDate={today} />
         <Option label={t('わからない・あとで確認する', 'Not sure · check later')}
           selected={selected === 'unknown'} onPress={() => choose('unknown')} />
       </> : question.options?.map(option => <Option key={option.id} label={option.label[locale]}
