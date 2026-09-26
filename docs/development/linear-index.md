@@ -6,6 +6,10 @@
 
 | 分類 | チケット | 目的 |
 |---|---|---|
+| E04補完 | [TOM-42](https://linear.app/aitane/issue/TOM-42) | 法要完了後の残作業保持・全完了誤判定修正 |
+| E03補完 | [TOM-43](https://linear.app/aitane/issue/TOM-43) | 条件付き初回質問・既存回答の抽出接続 |
+| E04保留 | [TOM-44](https://linear.app/aitane/issue/TOM-44) | 香典台帳。POモック待ち、今回実装保留 |
+| E04補完 | [TOM-45](https://linear.app/aitane/issue/TOM-45) | 法要完了後の相続確認・任意セルフケア |
 | 既存 | [TOM-1](https://linear.app/aitane/issue/TOM-1) | 広告表示の公開前確認。E04/G04へ関連付け |
 | 既存 | [TOM-2](https://linear.app/aitane/issue/TOM-2) | POモック待ち。E08/G03へ関連付け |
 | E01 | [TOM-3](https://linear.app/aitane/issue/TOM-3/e01-作業群仕様基準認可表契約状態遷移takt開発手順) | 【E01 作業群】仕様基準・認可表・契約状態遷移・TAKT開発手順 |
