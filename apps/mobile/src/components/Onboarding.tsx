@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { questions, type Locale } from '../data/questions';
 import { isValidPastDate } from '../domain/progress';
 import { colors as c, font, fonts } from '../theme';
 import { EnsoProgress } from './EnsoProgress';
+import { CalendarDateField } from './CalendarDateField';
+import { todayInJapan } from '../domain/calendar';
 
 export function Onboarding({ locale, onConfirm, initialAnswers = {} }: {
   locale: Locale; onConfirm: (answers: Record<string, string>) => void; initialAnswers?: Record<string, string>;
@@ -14,11 +16,15 @@ export function Onboarding({ locale, onConfirm, initialAnswers = {} }: {
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
   const question = questions[step];
   const selected = question ? answers[question.id] : undefined;
-  const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date());
+  const [today, setToday] = useState(todayInJapan);
+  useEffect(() => {
+    const timer = setInterval(() => setToday(todayInJapan()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
   const next = () => {
     if (!question || !selected) return;
-    if (question.id === 'deathDate' && selected !== 'unknown' && !isValidPastDate(selected, today)) {
-      setError(t('実際の日付を YYYY-MM-DD で入力するか、「あとで確認する」を選んでください。', 'Enter a real date as YYYY-MM-DD, or choose “Check later”.'));
+    if (question.id === 'deathDate' && selected !== 'unknown' && !isValidPastDate(selected, todayInJapan())) {
+      setError(t('今日以前の実際の日付を YYYY-MM-DD で入力するか、「あとで確認する」を選んでください。', 'Enter a real date on or before today as YYYY-MM-DD, or choose “Check later”.'));
       return;
     }
     setError(''); setStep(step + 1);
@@ -44,11 +50,8 @@ export function Onboarding({ locale, onConfirm, initialAnswers = {} }: {
       <Text accessibilityRole="header" style={s.title}>{question.title[locale]}</Text>
       <Text style={s.copy}>{t('わかる範囲で、お聞かせください。', 'Answer with what you know for now.')}</Text>
       {question.id === 'deathDate' ? <>
-        <Text style={s.inputLabel}>{t('日付（例：2026-09-01）', 'Date (for example, 2026-09-01)')}</Text>
-        <TextInput accessibilityLabel={t('亡くなった日、年-月-日', 'Date of death, year-month-day')}
-          placeholder="YYYY-MM-DD" placeholderTextColor={c.muted} style={s.input}
-          value={selected === 'unknown' ? '' : selected ?? ''} onChangeText={choose}
-          autoCorrect={false} maxLength={10} />
+        <CalendarDateField locale={locale} label={t('亡くなった日', 'Date of death')}
+          value={selected === 'unknown' ? '' : selected ?? ''} onChange={choose} maxDate={today} initialOpen />
         <Option label={t('わからない・あとで確認する', 'Not sure · check later')}
           selected={selected === 'unknown'} onPress={() => choose('unknown')} />
       </> : question.options?.map(option => <Option key={option.id} label={option.label[locale]}
@@ -105,7 +108,6 @@ const s = StyleSheet.create({
   radioSelected: { borderColor: c.green }, dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: c.green },
   optionText: { flex: 1, fontFamily: font, color: c.ink, fontSize: 15, lineHeight: 24 },
   inputLabel: { fontFamily: font, fontSize: 12, lineHeight: 21, color: c.muted, marginBottom: 7 },
-  input: { borderWidth: 1, borderColor: c.line, padding: 17, borderRadius: 3, minHeight: 58, fontSize: 18, color: c.ink, marginBottom: 12, fontFamily: font },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
   back: { minHeight: 48, padding: 12, justifyContent: 'center' }, backText: { fontFamily: font, color: c.green, fontSize: 14 },
   footnote: { fontFamily: font, fontSize: 12, color: c.muted, textAlign: 'center', lineHeight: 21, marginTop: 24 },

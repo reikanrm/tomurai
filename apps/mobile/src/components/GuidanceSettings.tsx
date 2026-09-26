@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Locale } from '../data/questions';
 import { addDays, validDate } from '../domain/calendar';
 import type { Choice, GuidancePlan } from '../domain/guidance-model';
 import { colors as c, fonts } from '../theme';
+import { CalendarDateField } from './CalendarDateField';
 
 export function GuidanceSettings({ locale, plan, onApply, onClose }: {
   locale: Locale; plan: GuidancePlan; onApply: (plan: GuidancePlan) => void; onClose: () => void;
@@ -58,8 +59,10 @@ export function GuidanceSettings({ locale, plan, onApply, onClose }: {
         {field('fortyNineDone', t('四十九日法要はすでに行いましたか？', 'Has the 49th-day service already been held?'), serviceChoices)}
         <Text style={s.label}>{t('四十九日法要の予定日（任意）', '49th-day service date (optional)')}</Text>
         <Text style={s.help}>{t('49日目より前に行う場合もあります。目安の日付とは別に扱います。', 'The service may be held earlier. This date is separate from the 49th-day guide.')}</Text>
-        <TextInput accessibilityLabel={t('四十九日法要の予定日', '49th-day service date')} style={s.input} value={draft.fortyNineDate}
-          onChangeText={value => update('fortyNineDate', value)} placeholder="YYYY-MM-DD" placeholderTextColor={c.muted} autoCorrect={false} maxLength={10} />
+        <CalendarDateField locale={locale} label={t('四十九日法要の予定日', '49th-day service date')}
+          value={draft.fortyNineDate} onChange={value => update('fortyNineDate', value)}
+          minDate={validDate(draft.deathDate) ? draft.deathDate : undefined}
+          clearLabel={t('予定日を未定に戻す', 'Clear the service date')} />
         {field('tablet', t('本位牌等を使用しますか？', 'Will your family use a memorial tablet?'), choices,
           t('浄土真宗など原則として本位牌を使わない宗派もあります。不明な場合は菩提寺・寺院へ確認してください。', 'Some traditions, including Jodo Shinshu, generally do not use these tablets. Ask your temple if unsure.'))}
         {field('fortyNineMeal', t('四十九日後の会食を予定していますか？', 'Plan a meal after the 49th-day service?'))}
@@ -108,7 +111,6 @@ const s = StyleSheet.create({
   selected: { borderColor: c.green, backgroundColor: c.paperDeep }, optionText: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 21, color: c.green }, selectedText: { fontFamily: fonts.medium },
   section: { borderBottomWidth: 1, borderColor: c.line, paddingVertical: 16, minHeight: 52, flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
   sectionText: { fontFamily: fonts.medium, fontSize: 15, color: c.ink, lineHeight: 24 },
-  input: { borderWidth: 1, borderColor: c.line, color: c.ink, fontFamily: fonts.regular, fontSize: 16, padding: 14, minHeight: 52, borderRadius: 3, marginBottom: 14 },
   toggle: { minHeight: 52, paddingVertical: 14, gap: 8 }, error: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 23, color: '#8C3824', marginTop: 16 },
   primary: { minHeight: 52, padding: 15, justifyContent: 'center', alignItems: 'center', backgroundColor: c.green, marginTop: 26, borderRadius: 3 },
   primaryText: { color: c.white, fontFamily: fonts.medium, fontSize: 15, lineHeight: 24 }, close: { alignItems: 'center', padding: 14, minHeight: 48, marginTop: 8 },
