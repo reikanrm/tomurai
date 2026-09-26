@@ -34,6 +34,7 @@
 | E09-1 | [TOM-26](https://linear.app/aitane/issue/TOM-26) | Expo間接依存uuidの中程度脆弱性調査・互換修正 |
 | E02A-5 | [TOM-27](https://linear.app/aitane/issue/TOM-27) | 下部アイコンのモック一致・円相原画像の筆跡・開始時と途中の欠け修正 |
 | E02A-6 | [TOM-28](https://linear.app/aitane/issue/TOM-28) | 担当者アバター・ケア/専門家画面の書体・寸法をモックへ合わせる |
+| E02A-7 | [TOM-29](https://linear.app/aitane/issue/TOM-29) | Windows内の専用Androidエミュレーター・Expo Go起動・再起動手順 |
 
 Eは作業群で、そのまま1回のTAKT入力にしない。着手時に子チケットへ分割する。
 Gは公開前に必要な実証・承認で、一括仕様承認だけではDoneにならない。

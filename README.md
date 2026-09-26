@@ -30,4 +30,5 @@ G01–G06は未達です。クラウド契約、実決済、実通知、公開�
 
 ブラウザー確認は `npm run web`。質問・4タブ・担当/完了はメモリ内のサンプル操作です。
 招待・質問に基づく正式な絞り込みは未接続です。実際の個人情報を入力しないでください。
+WindowsのAndroidエミュレーター確認は `npm run android:preview`。事前に専用AVDとExpo Goの準備が必要です。[起動・終了手順](docs/development/android-local-preview.md)を参照してください。
 React Native / TypeScript / Expo Development Build とGCPを前提にし、DBは原価・復旧の検証後にADRで確定します。

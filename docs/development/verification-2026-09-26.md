@@ -2,7 +2,7 @@
 
 2026-09-26、日本時間。対象：TOM-19、TOM-21〜28。
 
-前半はTOM-19着手時点の履歴。末尾の「POモック視覚修正」を現在の到達点とする。
+前半はTOM-19着手時点の履歴。末尾の「Androidローカル起動」までを現在の到達点とする。
 
 ## 実施したこと
 
@@ -101,3 +101,29 @@ POモック待ちや公開条件の未確定を理由に、独立したローカ
 - 4つの日本語TTFは約20.9MiB。Webの配信サイズ削減は別途検討し、文字欠落やライセンスを確認する。
 - オフラインlock更新のaudit 0件表示は、オンラインの脆弱性再調査ではない。TOM-26は未解決のまま。
 - 永続保存・家族同期・課金等は前節と同様に未接続。G01〜G06や公開承認を充足した扱いにしない。
+
+## Androidローカル起動（TOM-29）
+
+決定責任者：テックリード・會田 純一朗。Windows PC内で確認する依頼への承認に基づく。対応：C01 / R19 / R41 / R44 / R46。[再起動・終了手順](./android-local-preview.md)。
+
+### 確認した環境と実行結果
+
+- 既存Android SDK、Android Studio付属Java 21.0.10、Android 35 Google APIs x86_64イメージを使用。`emulator -accel-check`でWHPX利用可能（終了0）。既存AVDは消去・変更せず、専用`tomurai_pixel_api35`を新規作成。
+- シリアル`emulator-5556`を明示。`adb shell getprop sys.boot_completed`は`1`、`adb emu avd name`は専用AVD名を返した。カメラを無効にしてエミュレーターを可視起動。
+- Expo公式versions APIのSDK 57対応クライアントはExpo Go 57.0.9。公式GitHubリリースから取得し、`apksigner verify --print-certs`終了0を確認して専用AVDへインストール（`Success`）。APKや実行ログはgit管理対象外。
+- 初回`--localhost`だけではMetroがIPv6の`::1`に待受け、IPv4の接続先と一致しなかった。`node --dns-result-order=ipv4first .../expo/bin/cli start --go --localhost --port 8081`で修正。`Get-NetTCPConnection`で`127.0.0.1:8081`のみの待受けを確認。
+- `adb -s emulator-5556 reverse tcp:8081 tcp:8081`の後、`am start`で`exp://127.0.0.1:8081`を開き`Status: ok`。MetroはAndroidの857モジュールを14991msでバンドル完了。ReactNativeJSの`Running "main"`を確認。
+- Windowsの対象エミュレーターウィンドウを前面にし、スクリーンショットで心のケア、ホームの円相と進捗、専門家カテゴリを確認。下部タブでホーム→専門家へ遷移した。円相の元の筆跡と太い始点の緑、日本語本文、担当者Aの丸アイコンが表示された。
+- 観測時点の専用端末`logcat`で`ReactNativeJS:W` / `AndroidRuntime:E`の直近200行フィルターは出力なし。全経路の無障害を保証するものではない。
+- `npm run android:preview -- -CheckOnly`成功。PowerShell 5.1でHTTP本文がバイト列になるため、接続判定にUTF-8変換を追加。`-OpenOnly`でlocalhost・プロジェクト・AVDの照合とExpo Goへの接続が成功した。
+- 再起動試験中にADBのshell応答待ちが発生。専用端末の`reconnect`で一度復旧したが再発。応答しないADBサーバー（この作業で起動、PID/コマンドラインを照合）だけを停止・再起動した。ランチャーへ自動的なサーバー強制終了は組み込まない。AVDデータの初期化はしていない。
+- Windows側の描画にも停止を観測。専用エミュレーターを正常終了後、`-gpu software -no-snapshot-load`で再起動する経路へ変更。GPU原因の断定や長時間安定性の保証はしない。
+- 復旧後に通常の`npm run android:preview`でMetro起動、IPv4 localhost待受けを確認。ソフトウェア描画の端末へ`-OpenOnly`で再接続し、Androidバンドル1185ms/825モジュール成功。スクリーンショットで開始時の緑の円相全体と「質問をはじめる」→質問1/10（進捗0/10）への遷移を確認。最終の`getprop sys.boot_completed`は即時に`1`を返した。
+- PowerShell 5.1.26100.9444の構文検査、`npm test`23/23、`npm run check`、`npm run typecheck`、`git diff --check`成功。既存4 HTMLは初期mainから差分なし。起動スクリプトの独立した静的レビューも実施。
+
+### 未検証・残課題
+
+- 今回はExpo Go内のAndroidエミュレーター表示。独立したdevelopment build、物理Android/iOS、読み上げ、最大文字サイズ、実Mapsへの遷移は未検証。G06合格とは扱わない。
+- Android上で全10問の回答・英語・担当保存/取消の網羅試験は未実施。Webでの前節の結果と混同しない。
+- `expo install --check`は`@types/react`の19.2.2→期待値`~19.2.4`という型依存の警告あり。今回の起動整備で依存の自動変更はしていない。
+- 本番認証・保存・家族同期・課金等は未接続。R41のDevelopment Build方針を変更せず、クラウド/EAS契約、LAN公開、恒久PATH、ファイアウォールや仮想化設定の変更はしていない。

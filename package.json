@@ -12,6 +12,7 @@
     "check": "node scripts/check-baseline.mjs",
     "typecheck": "npm run typecheck --workspace @tomurai/mobile",
     "web": "npm run web --workspace @tomurai/mobile",
+    "android:preview": "powershell -NoProfile -File scripts/start-android-preview.ps1",
     "build:web": "npm run build:web --workspace @tomurai/mobile"
   }
 }
