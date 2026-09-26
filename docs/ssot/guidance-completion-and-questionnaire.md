@@ -48,4 +48,6 @@
 
 この範囲はローカル画面/ドメイン。サーバー認可・永続化・家族同期・配信・実機両OS・監修は未完了。TOM-4/5/9とG02/G03/G04/G06を完了にしない。香典台帳はTOM-44でPOモック待ち、初期版全体を完成と呼ばない。
 
+実装・検証結果は[補完検証記録](../development/audit-follow-up-2026-09-26.md)。保存/再起動/家族同期をTOM-46、実通知の未接続解消をTOM-47で追跡する。
+
 追加確認した一次情報（2026-09-26）：[本所廟堂の初七日案内](https://www.honjyo-byodo.jp/servicelist/)、[正宣寺の中陰法要](https://www.shosenji.or.jp/service/bardo.html)。特定寺院の説明を全宗派の義務へ一般化しない。相続案内は[裁判所・相続放棄](https://www.courts.go.jp/saiban/syurui/syurui_kazi/kazi_06_13/index.html)、[限定承認](https://www.courts.go.jp/saiban/syurui/syurui_kazi/kazi_06_14/index.html)、[期間伸長](https://www.courts.go.jp/saiban/syurui/syurui_kazi/kazi_06_25/index.html)を再確認。監修完了ではない。

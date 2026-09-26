@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Locale } from '../data/questions';
 import type { Choice } from '../domain/guidance-model';
-import { getInheritanceNotice, inheritanceDetails, inheritanceSources, type InheritanceContext } from '../domain/inheritance';
+import { getInheritanceNotice, inheritanceDetails, inheritanceSources, type FortyNineCompletion, type InheritanceContext } from '../domain/inheritance';
 import { colors as c, fonts } from '../theme';
 
 type InheritanceNoticeProps = {
@@ -11,16 +11,17 @@ type InheritanceNoticeProps = {
   today: string;
   consideration: Choice;
   context?: InheritanceContext;
+  fortyNineCompletion?: FortyNineCompletion;
   onConsiderationChange?: (value: Choice) => void;
   onFindSupport: () => void;
 };
 
 /** General safety guidance remains visible, including when the answer is “no”. */
-export function InheritanceNotice({ locale, deathDate, today, consideration, context = 'overview', onConsiderationChange, onFindSupport }: InheritanceNoticeProps) {
+export function InheritanceNotice({ locale, deathDate, today, consideration, context = 'overview', fortyNineCompletion, onConsiderationChange, onFindSupport }: InheritanceNoticeProps) {
   const [expanded, setExpanded] = useState(false);
   const [sourceError, setSourceError] = useState(false);
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
-  const notice = getInheritanceNotice({ deathDate, today, consideration, context });
+  const notice = getInheritanceNotice({ deathDate, today, consideration, context, fortyNineCompletion });
   const choices: Array<{ value: Choice; label: string }> = [
     { value: 'yes', label: t('はい', 'Yes') },
     { value: 'no', label: t('いいえ', 'No') },

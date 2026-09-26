@@ -1,84 +1,127 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { questions, type Locale } from '../data/questions';
-import { isValidPastDate } from '../domain/progress';
+import { guidanceQuestions, type Locale, type Question } from '../data/questions';
+import type { GuidancePlan } from '../domain/guidance-model';
+import { finalizeQuestionnaire, getActiveQuestions, getNextQuestionId, getPreviousQuestionId,
+  initializeQuestionnaire, validateQuestion, validateQuestionnaire, type QuestionnaireIssue, type QuestionnaireResult } from '../domain/questionnaire';
 import { colors as c, font, fonts } from '../theme';
 import { EnsoProgress } from './EnsoProgress';
 import { CalendarDateField } from './CalendarDateField';
-import { todayInJapan } from '../domain/calendar';
+import { todayInJapan, validDate } from '../domain/calendar';
 
-export function Onboarding({ locale, onConfirm, initialAnswers = {} }: {
-  locale: Locale; onConfirm: (answers: Record<string, string>) => void; initialAnswers?: Record<string, string>;
+export function Onboarding({ locale, onConfirm, initialAnswers = {}, initialPlan }: {
+  locale: Locale; onConfirm: (result: QuestionnaireResult) => void; initialAnswers?: Record<string, string>; initialPlan: GuidancePlan;
 }) {
-  const [step, setStep] = useState(Object.keys(initialAnswers).length ? questions.length : -1);
-  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
+  const [position, setPosition] = useState(Object.keys(initialAnswers).length ? 'review' : 'intro');
+  const [answers, setAnswers] = useState(() => initializeQuestionnaire(initialAnswers, initialPlan));
+  const [editingReview, setEditingReview] = useState(false);
+  const [showInactive, setShowInactive] = useState(false);
   const [error, setError] = useState('');
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
-  const question = questions[step];
+  const activeQuestions = getActiveQuestions(answers);
+  const question = activeQuestions.find(item => item.id === position);
+  const step = activeQuestions.findIndex(item => item.id === position);
   const selected = question ? answers[question.id] : undefined;
   const [today, setToday] = useState(todayInJapan);
+  const completed = activeQuestions.filter(item => !validateQuestion(item, answers, today)).length;
+  const inactiveQuestions = guidanceQuestions.filter(item => answers[item.id] && !activeQuestions.some(active => active.id === item.id));
   useEffect(() => {
     const timer = setInterval(() => setToday(todayInJapan()), 60_000);
     return () => clearInterval(timer);
   }, []);
+  const issueText = (issue: QuestionnaireIssue) => issue.reason === 'date-before-death'
+    ? t('法要の予定日は、亡くなった日以降の日付にするか「未定」を選んでください。', 'Choose a service date on or after the date of death, or select “Undecided”.')
+    : issue.reason === 'invalid-date'
+      ? issue.questionId === 'deathDate'
+        ? t('今日以前の実際の日付を選ぶか、「あとで確認する」を選んでください。', 'Choose a real date on or before today, or select “Check later”.')
+        : t('実際の日付を選ぶか、「未定」を選んでください。', 'Choose a real date, or select “Undecided”.')
+      : t('選択肢を選んでください。わからない場合は「あとで確認」を選べます。', 'Choose an option. You can select “Check later” if unsure.');
+  const move = (nextPosition: string) => { setPosition(nextPosition); setError(''); };
   const next = () => {
-    if (!question || !selected) return;
-    if (question.id === 'deathDate' && selected !== 'unknown' && !isValidPastDate(selected, todayInJapan())) {
-      setError(t('今日以前の実際の日付を YYYY-MM-DD で入力するか、「あとで確認する」を選んでください。', 'Enter a real date on or before today as YYYY-MM-DD, or choose “Check later”.'));
-      return;
-    }
-    setError(''); setStep(step + 1);
+    if (!question) return;
+    const issue = validateQuestion(question, answers, todayInJapan());
+    if (issue) { setError(issueText(issue)); return; }
+    if (editingReview) {
+      const outstanding = validateQuestionnaire(answers, todayInJapan())[0];
+      move(outstanding?.questionId ?? 'review');
+    } else move(getNextQuestionId(answers, question.id));
   };
   const choose = (value: string) => {
     if (question) setAnswers({ ...answers, [question.id]: value });
     setError('');
   };
+  const confirm = () => {
+    const result = finalizeQuestionnaire(answers, initialPlan, todayInJapan());
+    if (result) { onConfirm(result); return; }
+    const issue = validateQuestionnaire(answers, todayInJapan())[0];
+    if (issue) { setPosition(issue.questionId); setEditingReview(true); setError(issueText(issue)); }
+  };
+  const answerLabel = (item: Question) => item.options?.find(option => option.id === answers[item.id])?.label[locale]
+    ?? (answers[item.id] === 'unknown' ? t('あとで確認する', 'Check later') : answers[item.id] || t('未回答', 'Not answered'));
   return <View style={s.root}>
-    <EnsoProgress completed={Math.max(0, step)} total={questions.length}
-      appearance={step < 0 ? 'brand' : 'progress'}
-      label={step < 0 ? t('全10問・あとで確認も選べます', '10 questions · you can check later') : t('質問の確認', 'questions reviewed')} size={132} />
-    {step < 0 ? <>
+    <EnsoProgress completed={completed} total={activeQuestions.length}
+      appearance={position === 'intro' ? 'brand' : 'progress'}
+      label={position === 'intro' ? t('あとで確認も選べます', 'You can choose to check later') : t('質問への回答', 'questions answered')} size={132} />
+    {position === 'intro' ? <>
       <Text style={s.eyebrow}>{t('はじめに', 'GETTING STARTED')}</Text>
       <Text accessibilityRole="header" style={s.title}>{t('必要なことを、\nひとつずつ。', 'One thing\nat a time.')}</Text>
-      <Text style={s.copy}>{t('いくつかの質問から、必要な手続きを整理します。\nわからないことは、あとで確認できます。', 'A few questions help organise what needs to be done.\nYou can check anything you are unsure about later.')}</Text>
+      <Text style={s.copy}>{t('いくつかの質問から、必要な手続きを整理します。\nわからないことは、あとで確認できます。\n質問数は回答に応じて変わります。', 'A few questions help organise what needs to be done.\nYou can check anything you are unsure about later.\nThe number of questions changes with your answers.')}</Text>
       <View style={s.note}><Text style={s.noteText}>{t('回答するのは、ご家族の代表1名です。\n最後に内容を確認してから確定します。', 'One designated family member answers.\nReview your answers before confirming.')}</Text></View>
-      <Pressable accessibilityRole="button" style={s.primary} onPress={() => setStep(0)}>
+      <Pressable accessibilityRole="button" style={s.primary} onPress={() => move(getNextQuestionId(answers, 'intro'))}>
         <Text style={s.primaryText}>{t('質問をはじめる', 'Start questions')}　→</Text>
       </Pressable>
     </> : question ? <>
-      <Text style={s.eyebrow}>{t(`質問 ${step + 1} / ${questions.length}`, `QUESTION ${step + 1} OF ${questions.length}`)}</Text>
+      <Text style={s.eyebrow}>{t(`質問 ${step + 1} / ${activeQuestions.length}`, `QUESTION ${step + 1} OF ${activeQuestions.length}`)}</Text>
       <Text accessibilityRole="header" style={s.title}>{question.title[locale]}</Text>
-      <Text style={s.copy}>{t('わかる範囲で、お聞かせください。', 'Answer with what you know for now.')}</Text>
-      {question.id === 'deathDate' ? <>
-        <CalendarDateField locale={locale} label={t('亡くなった日', 'Date of death')}
-          value={selected === 'unknown' ? '' : selected ?? ''} onChange={choose} maxDate={today} />
-        <Option label={t('わからない・あとで確認する', 'Not sure · check later')}
+      <Text style={s.copy}>{question.help?.[locale] ?? t('わかる範囲で、お聞かせください。', 'Answer with what you know for now.')}</Text>
+      {question.kind === 'date' ? <>
+        <CalendarDateField key={question.id} locale={locale}
+          label={question.id === 'deathDate' ? t('亡くなった日', 'Date of death') : t('四十九日法要の予定日', '49th-day service date')}
+          value={selected === 'unknown' ? '' : selected ?? ''} onChange={choose}
+          maxDate={question.id === 'deathDate' ? today : undefined}
+          minDate={question.id === 'fortyNineDate' && validDate(answers.deathDate ?? '') ? answers.deathDate : undefined} />
+        <Option label={question.id === 'deathDate' ? t('わからない・あとで確認する', 'Not sure · check later') : t('未定・あとで確認する', 'Undecided · check later')}
           selected={selected === 'unknown'} onPress={() => choose('unknown')} />
       </> : question.options?.map(option => <Option key={option.id} label={option.label[locale]}
         selected={selected === option.id} onPress={() => choose(option.id)} />)}
       {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
       <View style={s.actions}>
-        <Pressable accessibilityRole="button" onPress={() => { setStep(step - 1); setError(''); }} style={s.back}>
+        <Pressable accessibilityRole="button" onPress={() => move(getPreviousQuestionId(answers, position))} style={s.back}>
           <Text style={s.backText}>←　{t('戻る', 'Back')}</Text>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityState={{ disabled: !selected }} aria-disabled={!selected}
           disabled={!selected} onPress={next} style={[s.primary, { flex: 1 }, !selected && s.disabled]}>
-          <Text style={s.primaryText}>{step === questions.length - 1 ? t('回答を確認する', 'Review answers') : t('次へ', 'Next')}　→</Text>
+          <Text style={s.primaryText}>{editingReview || getNextQuestionId(answers, position) === 'review' ? t('回答を確認する', 'Review answers') : t('次へ', 'Next')}　→</Text>
         </Pressable>
       </View>
+      {editingReview && <Pressable accessibilityRole="button" style={s.back} onPress={() => move('review')}>
+        <Text style={[s.backText, { textAlign: 'center' }]}>{t('回答一覧に戻る', 'Return to all answers')}</Text>
+      </Pressable>}
+      <Text style={s.footnote}>{t('質問数は回答に応じて変わります。', 'The number of questions changes with your answers.')}</Text>
       <Text style={s.footnote}>{t('入力内容はまだ確定していません。', 'Your answers have not been confirmed yet.')}</Text>
     </> : <>
       <Text accessibilityRole="header" style={s.title}>{t('回答を確認する', 'Review your answers')}</Text>
       <Text style={s.copy}>{t('「わからない」のままでも進めます。\n必要に応じて、あとで確認しましょう。', 'You can continue with “Not sure”.\nCheck those details when you need to.')}</Text>
-      {questions.map((q, i) => <Pressable key={q.id} accessibilityRole="button"
+      {activeQuestions.map(q => <Pressable key={q.id} accessibilityRole="button"
         accessibilityLabel={t(q.title.ja.replace('\n', '') + 'を見直す', 'Review: ' + q.title.en.replace('\n', ' '))}
-        style={s.summary} onPress={() => setStep(i)}>
+        style={s.summary} onPress={() => { setEditingReview(true); move(q.id); }}>
         <View style={{ flex: 1 }}><Text style={s.inputLabel}>{q.title[locale].replace('\n', '')}</Text>
-          <Text style={s.answer}>{q.options?.find(o => o.id === answers[q.id])?.label[locale]
-            ?? (answers[q.id] === 'unknown' ? t('あとで確認する', 'Check later') : answers[q.id])}</Text>
+          <Text style={s.answer}>{answerLabel(q)}</Text>
         </View><Text style={s.backText}>{t('修正', 'Edit')}</Text>
       </Pressable>)}
-      <Pressable accessibilityRole="button" style={s.primary} onPress={() => onConfirm({ ...answers })}>
+      {inactiveQuestions.length > 0 && <>
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: showInactive }} aria-expanded={showInactive}
+          onPress={() => setShowInactive(current => !current)} style={s.back}>
+          <Text style={s.backText}>{t('今回使用しない回答を確認', 'View answers not used this time')} {showInactive ? '−' : '+'}</Text>
+        </Pressable>
+        {showInactive && <View style={s.note}>
+          <Text style={s.noteText}>{t('現在の選択では使用しません。条件を戻すと回答も戻ります。', 'These answers do not apply to your current choices. They return if you change those choices back.')}</Text>
+          {inactiveQuestions.map(item => <View key={item.id} style={s.summary}><View style={{ flex: 1 }}>
+            <Text style={s.inputLabel}>{item.title[locale].replace('\n', '')}</Text><Text style={s.answer}>{answerLabel(item)}</Text>
+          </View></View>)}
+        </View>}
+      </>}
+      <Pressable accessibilityRole="button" style={s.primary} onPress={confirm}>
         <Text style={s.primaryText}>{t('この内容で確定する', 'Confirm these answers')}</Text>
       </Pressable>
     </>}

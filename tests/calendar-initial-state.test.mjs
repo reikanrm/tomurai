@@ -11,7 +11,9 @@ test('death-date question uses the collapsed calendar default, keeping its value
   assert.ok(call);
   assert.doesNotMatch(call, /\binitialOpen\b/);
   assert.match(call, /value=\{selected === 'unknown' \? '' : selected \?\? ''\}/);
-  assert.match(call, /onChange=\{choose\} maxDate=\{today\}/);
+  assert.match(call, /onChange=\{choose\}/);
+  assert.match(call, /maxDate=\{question\.id === 'deathDate' \? today : undefined\}/);
+  assert.match(call, /key=\{question\.id\}/);
   assert.match(field, /initialOpen = false/);
   assert.match(field, /const \[open, setOpen\] = useState\(initialOpen\)/);
   assert.match(field, /aria-expanded=\{open\} onPress=\{toggle\}/);

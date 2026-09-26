@@ -103,9 +103,12 @@ test('forty-nine preparation and day-of tasks follow yes, no and unknown branche
   assert.equal(byId(done, 'forty-nine-altar').needsConfirmation, true);
   for (const id of [
     'forty-nine-date', 'forty-nine-place', 'forty-nine-temple', 'forty-nine-attendees',
-    'forty-nine-meal-arrangements', 'forty-nine-meal-day', 'forty-nine-gifts', 'forty-nine-eye-opening',
+    'forty-nine-meal-arrangements', 'forty-nine-gifts',
   ]) {
     assert.equal(byId(done, id), undefined);
+  }
+  for (const id of ['forty-nine-offering', 'forty-nine-meal-day', 'forty-nine-eye-opening']) {
+    assert.equal(byId(done, id).done, false);
   }
 
   const notDone = deriveGuidanceTasks(plan({
@@ -310,4 +313,89 @@ test('separate forty-nine preparation progress survives hiding and restores by s
     assert.equal(byId(restored, id).done, saved.done);
     assert.equal(byId(restored, id).assignee, saved.assignee);
   }
+});
+
+test('issued preparation and day-of work remain after completion with stable progress and assignments', () => {
+  const history = { firstWeek: true, fortyNine: true };
+  const active = plan({ rituals: 'yes', firstWeekDone: 'no', firstWeekMeal: 'yes', fortyNineDone: 'no',
+    tablet: 'yes', gifts: 'yes', fortyNineMeal: 'yes', eyeOpening: 'yes', altar: 'yes' });
+  const progress = { 'first-week-offerings': { done: false, assignee: 'family-a' },
+    'forty-nine-date': { done: true, assignee: 'family-b' },
+    'forty-nine-gifts': { done: false, assignee: 'family-a' } };
+  const completed = { ...active, firstWeekDone: 'yes', fortyNineDone: 'yes' };
+  const tasks = applyTaskProgress(deriveGuidanceTasks(completed, history), progress);
+  for (const [id, expected] of Object.entries(progress)) {
+    assert.equal(byId(tasks, id).done, expected.done);
+    assert.equal(byId(tasks, id).assignee, expected.assignee);
+  }
+  assert.equal(byId(tasks, 'first-week-service').done, true);
+  assert.equal(byId(tasks, 'forty-nine-service').done, true);
+  assert.ok(byId(tasks, 'forty-nine-tablet-after'));
+  const undone = applyTaskProgress(deriveGuidanceTasks(active, history), progress);
+  assert.equal(byId(undone, 'forty-nine-service').done, false);
+  assert.equal(byId(undone, 'forty-nine-date').done, true);
+  assert.equal(byId(undone, 'forty-nine-tablet-after'), undefined);
+});
+
+test('initial completed services do not create preparation but forty-nine residual work stays reviewable', () => {
+  const tasks = deriveGuidanceTasks(plan({ rituals: 'yes', firstWeekDone: 'yes', firstWeekMeal: 'yes',
+    fortyNineDone: 'yes', fortyNineMeal: 'unknown', eyeOpening: 'unknown', tablet: 'no', altar: 'yes' }));
+  assert.deepEqual(tasks.filter(task => task.group === 'first-week').map(task => task.id), ['first-week-service']);
+  assert.equal(byId(tasks, 'forty-nine-date'), undefined);
+  assert.equal(byId(tasks, 'forty-nine-gifts'), undefined);
+  assert.equal(byId(tasks, 'forty-nine-offering').done, false);
+  assert.equal(byId(tasks, 'forty-nine-meal-confirm').needsConfirmation, true);
+  assert.equal(byId(tasks, 'forty-nine-eye-opening').needsConfirmation, true);
+  assert.ok(byId(tasks, 'forty-nine-altar'));
+});
+
+test('retained work is derived from current choices rather than a stale task-ID snapshot', () => {
+  const history = { firstWeek: true, fortyNine: true };
+  const completed = plan({ rituals: 'yes', firstWeekDone: 'yes', fortyNineDone: 'yes',
+    firstWeekMeal: 'unknown', fortyNineMeal: 'unknown', tablet: 'no', altar: 'no' });
+  assert.ok(byId(deriveGuidanceTasks(completed, history), 'forty-nine-meal-confirm'));
+  const changed = { ...completed, firstWeekMeal: 'yes', fortyNineMeal: 'yes' };
+  const tasks = deriveGuidanceTasks(changed, history);
+  assert.ok(byId(tasks, 'forty-nine-meal-arrangements'));
+  assert.ok(byId(tasks, 'forty-nine-meal-day'));
+  assert.equal(byId(tasks, 'forty-nine-meal-confirm'), undefined);
+  assert.match(byId(tasks, 'first-week-meal').title.ja, /手配/);
+  const progress = { 'forty-nine-meal-day': { done: false, notNeeded: true, assignee: 'family-a' } };
+  const hidden = deriveGuidanceTasks({ ...changed, fortyNineMeal: 'no' }, history);
+  assert.equal(byId(hidden, 'forty-nine-meal-day'), undefined);
+  const restored = applyTaskProgress(deriveGuidanceTasks(changed, history), progress);
+  assert.equal(byId(restored, 'forty-nine-meal-day').notNeeded, true);
+  assert.equal(byId(restored, 'forty-nine-meal-day').assignee, 'family-a');
+  assert.equal(deriveGuidanceTasks({ ...changed, rituals: 'no' }, history).some(t => ['first-week', 'forty-nine'].includes(t.group)), false);
+});
+
+test('not-needed is reversible, never counted as done, and cannot bypass plan-backed or required work', () => {
+  const planValue = plan({ rituals: 'yes', firstWeekDone: 'no', fortyNineDone: 'no' });
+  const raw = deriveGuidanceTasks(planValue);
+  const progress = {
+    'first-week-offerings': { done: true, notNeeded: true, assignee: 'family-a' },
+    'first-week-service': { done: false, notNeeded: true },
+    'receive-medical-certificate': { done: false, notNeeded: true },
+  };
+  const tasks = applyTaskProgress(raw, progress);
+  assert.equal(byId(tasks, 'first-week-offerings').notNeeded, true);
+  assert.equal(byId(tasks, 'first-week-offerings').done, false);
+  assert.equal(byId(tasks, 'first-week-service').notNeeded, false);
+  assert.equal(byId(tasks, 'receive-medical-certificate').notNeeded, false);
+  const restored = applyTaskProgress(raw, { ...progress, 'first-week-offerings': { ...progress['first-week-offerings'], notNeeded: false } });
+  assert.equal(byId(restored, 'first-week-offerings').done, true);
+  assert.equal(byId(restored, 'first-week-offerings').assignee, 'family-a');
+  assert.equal(progress['first-week-offerings'].done, true);
+});
+
+test('first-week forms and practical task copy do not stop at checking the action', () => {
+  const tasks = deriveGuidanceTasks(plan({ rituals: 'yes', firstWeekDone: 'no', firstWeekMeal: 'yes', fortyNineDone: 'yes', altar: 'yes' }));
+  const explanation = byId(tasks, 'first-week-confirm').description.ja;
+  assert.match(explanation, /火葬・収骨後/);
+  assert.match(explanation, /告別式後・火葬前/);
+  assert.match(explanation, /式中（繰り込み）初七日/);
+  assert.match(explanation, /名称や形式は寺院等に確認/);
+  assert.match(byId(tasks, 'first-week-offerings').description.ja, /必要な場合だけ準備/);
+  assert.match(byId(tasks, 'first-week-meal').description.ja, /手配/);
+  assert.match(byId(tasks, 'forty-nine-altar').description.ja, /確認した上で片付け/);
 });

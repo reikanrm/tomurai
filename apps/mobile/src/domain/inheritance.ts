@@ -1,14 +1,20 @@
 import type { TextPair } from '../data/questions';
 import type { Choice } from './guidance-model';
-import { addDays, inWindow } from './calendar.ts';
+import { addDays, inWindow, validDate } from './calendar.ts';
 
 export type InheritanceContext = 'overview' | 'belongings';
-export type InheritanceReminder = 'general' | 'first-week' | 'seven-weeks';
+export type InheritanceReminder = 'general' | 'first-week' | 'seven-weeks' | 'after-forty-nine';
+export type FortyNineCompletion = {
+  completed: boolean;
+  /** JST date of the confirmation action, not the service date or a legal start date. */
+  confirmedOn?: string;
+};
 type InheritanceInput = {
   deathDate: string;
   today: string;
   consideration: Choice;
   context?: InheritanceContext;
+  fortyNineCompletion?: FortyNineCompletion;
 };
 
 export const inheritanceWarning: TextPair = {
@@ -59,9 +65,17 @@ export const inheritanceSources = [
 
 /** These windows are prompts to revisit general guidance, never legal deadlines.
  * No religious preference, ritual progress, or consideration answer hides safety copy. */
-export function getInheritanceNotice({ deathDate, today, consideration, context = 'overview' }: InheritanceInput) {
+export function getInheritanceNotice({ deathDate, today, consideration, context = 'overview', fortyNineCompletion }: InheritanceInput) {
+  const confirmedOn = fortyNineCompletion?.confirmedOn ?? '';
+  // Both the current answer and a valid recent confirmation are required. An old
+  // event cannot override cancellation, and a corrected death date cannot turn
+  // a pre-death confirmation into a completed service.
+  const recentCompletion = fortyNineCompletion?.completed === true
+    && inWindow(today, confirmedOn)
+    && (!deathDate || (validDate(deathDate) && deathDate <= confirmedOn));
   let reminder: InheritanceReminder = 'general';
-  if (inWindow(today, addDays(deathDate, 6))) reminder = 'first-week';
+  if (recentCompletion) reminder = 'after-forty-nine';
+  else if (inWindow(today, addDays(deathDate, 6))) reminder = 'first-week';
   else if (inWindow(today, addDays(deathDate, 48))) reminder = 'seven-weeks';
 
   const title: TextPair = context === 'belongings'
@@ -69,11 +83,13 @@ export function getInheritanceNotice({ deathDate, today, consideration, context 
     : reminder === 'general'
       ? { ja: '財産を売却・処分する前に', en: 'Before selling or disposing of property' }
       : { ja: '相続について、もう一度確認を', en: 'A moment to revisit inheritance matters' };
-  const reminderText: TextPair | null = reminder === 'first-week'
-    ? { ja: '一週間ごろの確認です。相続の判断に必要な財産・負債や、手続きの時期を確認しましょう。', en: 'A check-in around the first week. Check the assets, debts and timing relevant to your inheritance decisions.' }
-    : reminder === 'seven-weeks'
-      ? { ja: '七週間ごろの確認です。まだ判断していない場合は、早めに財産・負債と手続きを確認し、必要に応じて専門家へ相談しましょう。', en: 'A check-in around seven weeks. If you have not decided yet, check the assets, debts and procedures promptly, and seek professional advice if needed.' }
-      : null;
+  const reminderText: TextPair | null = reminder === 'after-forty-nine'
+    ? { ja: '四十九日法要の実施を確認しました。相続についても、必要に応じて確認できます。', en: 'You confirmed that the forty-nine-day service was completed. You can also review inheritance matters if needed.' }
+    : reminder === 'first-week'
+      ? { ja: '一週間ごろの確認です。相続の判断に必要な財産・負債や、手続きの時期を確認しましょう。', en: 'A check-in around the first week. Check the assets, debts and timing relevant to your inheritance decisions.' }
+      : reminder === 'seven-weeks'
+        ? { ja: '七週間ごろの確認です。まだ判断していない場合は、早めに財産・負債と手続きを確認し、必要に応じて専門家へ相談しましょう。', en: 'A check-in around seven weeks. If you have not decided yet, check the assets, debts and procedures promptly, and seek professional advice if needed.' }
+        : null;
 
   return { reminder, title, reminderText, warning: inheritanceWarning, consideration };
 }

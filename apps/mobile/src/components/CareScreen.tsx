@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { careMoods, toggleCareMood, type CareMoodId } from '../data/care';
+import { careMoods, toggleCareMood, selfCareActions, toggleSelfCareAction, type CareMoodId, type SelfCareActionId } from '../data/care';
 import type { Locale } from '../data/questions';
 import { colors as c, fonts } from '../theme';
 
@@ -14,6 +14,7 @@ type CareScreenProps = {
  * Mood selection is neither a diagnosis nor persisted/shared information. */
 export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) {
   const [mood, setMood] = useState<CareMoodId | null>(null);
+  const [action, setAction] = useState<SelfCareActionId | null>(null);
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
 
   return <>
@@ -45,6 +46,21 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
     <Text style={s.moodNote}>{t('選ばなくても大丈夫です。気分の履歴は保存しません。', 'You do not have to choose. No mood history is saved.')}</Text>
 
     <Text accessibilityRole="header" style={s.sectionLabel}>{t('今できること', 'What you can do now')}</Text>
+    <Text style={s.actionNote}>{t('今の自分に合うものがあれば。何も選ばずに過ごしてもかまいません。', 'Only if something suits you now. You can also leave everything unselected.')}</Text>
+    {selfCareActions.map(option => <View key={option.id} style={s.smallAction}>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: action === option.id }}
+        aria-expanded={action === option.id} style={s.smallActionButton}
+        onPress={() => setAction(current => toggleSelfCareAction(current, option.id))}>
+        <Text style={[s.actionTitle, { flex: 1 }]}>{option.title[locale]}</Text>
+        <Text accessible={false} aria-hidden style={s.disclosure}>{action === option.id ? '−' : '＋'}</Text>
+      </Pressable>
+      {action === option.id && <View style={s.smallActionBody}>
+        <Text style={s.actionBody}>{option.body[locale]}</Text>
+        <Pressable accessibilityRole="button" style={s.closeAction} onPress={() => setAction(null)}>
+          <Text style={s.actionSub}>{t('案内を閉じる', 'Close this suggestion')}</Text>
+        </Pressable>
+      </View>}
+    </View>)}
     <Pressable accessibilityRole="button" onPress={onFindSupport}
       accessibilityLabel={t('グリーフカウンセラーに話す。Google Mapsで相談先を探す', 'Talk to a grief counsellor. Find support in Google Maps')}
       style={s.actionRow}>
@@ -93,4 +109,11 @@ const s = StyleSheet.create({
   actionCopy: { flex: 1 },
   actionTitle: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, color: c.ink, marginBottom: 2 },
   actionSub: { fontFamily: fonts.light, fontSize: 12, lineHeight: 17, color: c.muted },
+  actionNote: { fontFamily: fonts.light, fontSize: 12, lineHeight: 22, color: c.muted, marginVertical: 14 },
+  smallAction: { borderBottomWidth: 1, borderColor: c.line },
+  smallActionButton: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14 },
+  disclosure: { color: c.warm, fontSize: 18, width: 24, textAlign: 'center' },
+  smallActionBody: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: c.warmPaper, marginBottom: 12 },
+  actionBody: { fontFamily: fonts.light, fontSize: 13, lineHeight: 25, color: c.ink },
+  closeAction: { minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
 });

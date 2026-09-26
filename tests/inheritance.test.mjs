@@ -105,3 +105,82 @@ test('sources are distinct official court HTTPS pages with labels for both local
     assert.ok(source.label.ja && source.label.en);
   }
 });
+
+test('confirmed forty-nine completion has a seven-day window before or after D+48', () => {
+  for (const confirmedOn of ['2026-02-01', '2026-03-10']) {
+    for (const [days, expected] of [[-1, 'general'], [0, 'after-forty-nine'], [6, 'after-forty-nine'], [7, 'general']]) {
+      const notice = getInheritanceNotice({ ...base, today: addDays(confirmedOn, days),
+        fortyNineCompletion: { completed: true, confirmedOn } });
+      assert.equal(notice.reminder, expected, `${confirmedOn} + ${days}`);
+      assert.deepEqual(notice.warning, inheritanceWarning);
+    }
+  }
+});
+
+test('completion confirmation takes precedence once, then returns to the independent calendar window', () => {
+  const duringBoth = { ...base, today: '2026-02-18', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-18' } };
+  assert.equal(getInheritanceNotice(duringBoth).reminder, 'after-forty-nine');
+  assert.equal(getInheritanceNotice({ ...duringBoth, fortyNineCompletion: { ...duringBoth.fortyNineCompletion, completed: false } }).reminder, 'seven-weeks');
+  assert.equal(getInheritanceNotice({ ...duringBoth, fortyNineCompletion: { completed: true, confirmedOn: '2026-02-11' } }).reminder, 'seven-weeks');
+  assert.equal(getInheritanceNotice({ ...duringBoth, fortyNineCompletion: undefined }).reminder, 'seven-weeks');
+});
+
+test('a stale confirmation cannot survive cancellation; a later reconfirmation starts a new window', () => {
+  const first = { ...base, today: '2026-02-01', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-01' } };
+  assert.equal(getInheritanceNotice(first).reminder, 'after-forty-nine');
+  assert.equal(getInheritanceNotice({ ...first, fortyNineCompletion: { completed: false, confirmedOn: '2026-02-01' } }).reminder, 'general');
+  assert.equal(getInheritanceNotice({ ...first, today: '2026-02-10' }).reminder, 'general');
+  const reconfirmed = { ...first, today: '2026-02-10', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-10' } };
+  assert.equal(getInheritanceNotice(reconfirmed).reminder, 'after-forty-nine');
+  assert.equal(getInheritanceNotice({ ...reconfirmed, today: '2026-02-17' }).reminder, 'general');
+});
+
+test('missing, malformed, future and pre-death confirmation dates never create an event reminder', () => {
+  for (const confirmedOn of [undefined, '', 'unknown', '2026-02-30', '2026-2-1', '2026-02-02', '2025-12-31']) {
+    const notice = getInheritanceNotice({ ...base, today: '2026-02-01', fortyNineCompletion: { completed: true, confirmedOn } });
+    assert.equal(notice.reminder, 'general', String(confirmedOn));
+    assert.deepEqual(notice.warning, inheritanceWarning);
+  }
+  const invalidToday = getInheritanceNotice({ ...base, today: '2026-02-30', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-25' } });
+  assert.equal(invalidToday.reminder, 'general');
+  const beforeDeath = getInheritanceNotice({ ...base, deathDate: '2026-02-02', today: '2026-02-01', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-01' } });
+  assert.equal(beforeDeath.reminder, 'general');
+  const correctedDeath = getInheritanceNotice({ ...base, deathDate: '2026-02-02', today: '2026-02-04', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-01' } });
+  assert.equal(correctedDeath.reminder, 'general');
+  const invalidDeath = getInheritanceNotice({ ...base, deathDate: '2026-02-30', today: '2026-02-01', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-01' } });
+  assert.equal(invalidDeath.reminder, 'general');
+});
+
+test('a confirmed completion can prompt with an unknown death date, without making a legal or ceremony date', () => {
+  const notice = getInheritanceNotice({ ...base, deathDate: '', today: '2026-02-01', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-01' } });
+  assert.equal(notice.reminder, 'after-forty-nine');
+  assert.match(notice.reminderText.ja, /四十九日法要の実施を確認しました/);
+  assert.match(notice.reminderText.en, /confirmed.*completed/);
+  assert.doesNotMatch(JSON.stringify(notice), /2026-02-01|今日.*法要|service.*today|90日|40日|deadlineDate|daysRemaining/);
+  assert.deepEqual(Object.keys(notice).sort(), ['consideration', 'reminder', 'reminderText', 'title', 'warning'].sort());
+});
+
+test('completion check-ins preserve warnings for every answer/context and do not mutate input', () => {
+  for (const consideration of ['yes', 'no', 'unknown']) for (const context of ['overview', 'belongings']) {
+    const input = Object.freeze({ ...base, today: '2026-02-01', consideration, context,
+      fortyNineCompletion: Object.freeze({ completed: true, confirmedOn: '2026-02-01' }) });
+    const before = structuredClone(input);
+    const notice = getInheritanceNotice(input);
+    assert.equal(notice.reminder, 'after-forty-nine');
+    assert.deepEqual(notice.warning, inheritanceWarning);
+    assert.equal(notice.consideration, consideration);
+    if (context === 'belongings') assert.equal(notice.title.ja, '遺品を整理する前に');
+    assert.deepEqual(input, before);
+  }
+});
+
+test('confirmation windows use JST calendar days across year and leap boundaries', () => {
+  for (const [confirmedOn, finalDay, expiredDay] of [['2026-12-29', '2027-01-04', '2027-01-05'], ['2028-02-25', '2028-03-02', '2028-03-03']]) {
+    const input = { ...base, deathDate: '', fortyNineCompletion: { completed: true, confirmedOn } };
+    assert.equal(getInheritanceNotice({ ...input, today: finalDay }).reminder, 'after-forty-nine');
+    assert.equal(getInheritanceNotice({ ...input, today: expiredDay }).reminder, 'general');
+  }
+  const input = { ...base, deathDate: '', fortyNineCompletion: { completed: true, confirmedOn: '2026-02-01' } };
+  assert.equal(getInheritanceNotice({ ...input, today: todayInJapan(new Date('2026-02-07T14:59:59Z')) }).reminder, 'after-forty-nine');
+  assert.equal(getInheritanceNotice({ ...input, today: todayInJapan(new Date('2026-02-07T15:00:00Z')) }).reminder, 'general');
+});

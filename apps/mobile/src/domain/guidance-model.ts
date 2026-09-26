@@ -28,6 +28,9 @@ export const defaultPlan: GuidancePlan = {
   altar: 'unknown', returnsDone: 'unknown', inheritance: 'unknown', showMessages: true,
 };
 export type CompletionKey = 'firstWeekDone' | 'fortyNineDone' | 'burial' | 'returnsDone';
+/** Whether preparation candidates have been issued, not when a rite took place. */
+export type RitualWorkHistory = { firstWeek: boolean; fortyNine: boolean };
+export const defaultRitualWorkHistory: RitualWorkHistory = { firstWeek: false, fortyNine: false };
 export type GuidanceTask = {
   id: string;
   title: TextPair;
@@ -35,6 +38,7 @@ export type GuidanceTask = {
   category: TextPair;
   group: 'general' | 'first-week' | 'forty-nine' | 'burial' | 'thanks' | 'belongings';
   done: boolean;
+  notNeeded: boolean;
   assignee: string | null;
   optional: boolean;
   needsConfirmation: boolean;
@@ -42,4 +46,4 @@ export type GuidanceTask = {
   scheduledDate: string | null;
   completionKey?: CompletionKey;
 };
-export type TaskProgress = Record<string, { done?: boolean; assignee?: string | null }>;
+export type TaskProgress = Record<string, { done?: boolean; notNeeded?: boolean; assignee?: string | null }>;

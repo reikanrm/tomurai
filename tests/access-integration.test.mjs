@@ -21,18 +21,21 @@ test('access wiring: development entry, menu and mutation are guarded, not enabl
 
 test('access wiring: first confirmation fixes task IDs and later confirmations retain them', () => {
   assert.match(app, /useState<readonly string\[\] \| null>\(null\)/);
-  assert.match(app, /setFreeTaskIds\(current => freezeFreeTaskIds\(deriveGuidanceTasks\(nextPlan\), current\)\)/);
-  assert.match(app, /activeMember && \(screen === 'home' \|\| screen === 'tasks'\) && freeTaskIds === null/);
+  assert.match(app, /setFreeTaskIds\(current => freezeFreeTaskIds\(nextTasks, current\)\)/);
+  assert.match(app, /const nextTasks = \[\.\.\.deriveGuidanceTasks\(nextPlan, recordRitualWork\(plan, nextPlan, ritualWork\)\), \.\.\.deriveGeneralConfirmationTasks\(next\)\]/);
+  assert.equal((app.match(/setFreeTaskIds\(current =>/g) ?? []).length, 1);
+  assert.doesNotMatch(app, /setFreeTaskIds\(freezeFreeTaskIds\(tasks, null\)\)/);
   assert.doesNotMatch(app, /setFreeTaskIds\(null\)/);
 });
 
 test('access wiring: home, task filters, progress and details use only the access projection', () => {
   assert.match(app, /const visibleTasks = taskAccess\.visibleTasks;/);
-  assert.match(app, /visibleTasks\.filter\(task => !task\.done\)\.slice\(0, 3\)\.map\(renderTask\)/);
+  assert.match(app, /visibleTasks\.filter\(task => !task\.done && !task\.notNeeded\)\.slice\(0, 3\)\.map\(renderTask\)/);
   assert.match(app, /visibleTasks\.filter\(task => filter === 'all'/);
   assert.match(app, /const selected = visibleTasks\.find\(task => task\.id === selectedId\)/);
   assert.match(app, /const doneCount = visibleTasks\.filter\(task => task\.done\)\.length/);
-  assert.match(app, /<EnsoProgress completed=\{doneCount\} total=\{visibleTasks\.length\}/);
+  assert.match(app, /const applicableCount = visibleTasks\.filter\(task => !task\.notNeeded\)\.length/);
+  assert.match(app, /<EnsoProgress completed=\{doneCount\} total=\{applicableCount\}/);
   assert.doesNotMatch(app, /\btasks\.(?:map|filter)\([\s\S]*?\.map\(renderTask\)/);
 });
 
@@ -93,7 +96,19 @@ test('access wiring: answer ownership is enforced separately and pending safety 
   assert.match(app, /screen === 'guidance' && canAnswer && <GuidanceSettings/);
   assert.match(app, /deathDate=\{activeMember \? plan\.deathDate : ''\}/);
   assert.match(app, /consideration=\{activeMember \? plan\.inheritance : 'unknown'\}/);
+  assert.match(app, /fortyNineCompletion=\{activeMember \? \{ completed: plan\.fortyNineDone === 'yes', confirmedOn: eventDates\['forty-nine'\] \} : undefined\}/);
   assert.match(app, /onConsiderationChange=\{canAnswer \?/);
   assert.match(app, /screen === 'specialists' && <SpecialistsScreen/);
   assert.match(app, /screen === 'care' && <>/);
+});
+
+test('guidance integration keeps operation dates fresh and target exclusion separate from completion', () => {
+  assert.match(app, /AppState\.addEventListener\('change', state => \{\s+if \(state === 'active'\) setToday\(todayInJapan\(\)\)/);
+  assert.match(app, /subscription\.remove\(\)/);
+  assert.match(app, /const confirmedOn = todayInJapan\(\)/);
+  assert.match(app, /recordPlanEvents\(plan, next, confirmedOn, current\)/);
+  assert.match(app, /setRitualWork\(current => recordRitualWork\(plan, next, current\)\)/);
+  assert.match(app, /if \(change\.notNeeded !== undefined && \(!selected\.optional \|\| selected\.completionKey\)\) return;/);
+  assert.match(app, /対象外にする/);
+  assert.match(app, /対象に戻す/);
 });

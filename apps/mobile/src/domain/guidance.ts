@@ -1,5 +1,5 @@
 import { addDays, daysBetween, validDate } from './calendar.ts';
-import type { GuidancePlan, GuidanceTask, TaskProgress } from './guidance-model';
+import { defaultRitualWorkHistory, type GuidancePlan, type GuidanceTask, type TaskProgress, type RitualWorkHistory } from './guidance-model.ts';
 
 const categories = {
   general: { ja: '手続きの確認', en: 'Procedure checks' },
@@ -12,15 +12,16 @@ const categories = {
 
 type TaskInput = Omit<
   GuidanceTask,
-  'done' | 'assignee' | 'optional' | 'needsConfirmation' | 'guidanceDate' | 'scheduledDate'
+  'done' | 'notNeeded' | 'assignee' | 'optional' | 'needsConfirmation' | 'guidanceDate' | 'scheduledDate'
 > & Partial<Pick<
   GuidanceTask,
-  'done' | 'assignee' | 'optional' | 'needsConfirmation' | 'guidanceDate' | 'scheduledDate'
+  'done' | 'notNeeded' | 'assignee' | 'optional' | 'needsConfirmation' | 'guidanceDate' | 'scheduledDate'
 >>;
 
 function task(input: TaskInput): GuidanceTask {
   return {
     done: false,
+    notNeeded: false,
     assignee: null,
     optional: false,
     needsConfirmation: false,
@@ -94,16 +95,16 @@ function generalTasks(): GuidanceTask[] {
   ];
 }
 
-function firstWeekTasks(plan: GuidancePlan, guidanceDate: string | null): GuidanceTask[] {
+function firstWeekTasks(plan: GuidancePlan, guidanceDate: string | null, retainPreparation = false): GuidanceTask[] {
   if (plan.firstWeekDone === 'notNeeded') return [];
 
   if (plan.firstWeekDone === 'yes') {
-    return [task({
+    const completed = task({
       id: 'first-week-service',
       title: { ja: '初七日法要', en: 'Seventh-day service' },
       description: {
-        ja: '実施済みとして確認されています。葬儀当日に行った場合も、準備タスクを重ねて作りません。',
-        en: 'Recorded as completed. No duplicate preparation tasks are added when it was held on the funeral day.',
+        ja: '法要本体は実施済みとして確認されています。初回から実施済みの場合は準備を新規発行せず、すでに案内した関連作業は個別に確認します。',
+        en: 'The service itself is recorded as completed. No preparation is added when it was already completed at first entry; any previously listed related work is checked separately.',
       },
       category: categories.firstWeek,
       group: 'first-week',
@@ -111,7 +112,10 @@ function firstWeekTasks(plan: GuidancePlan, guidanceDate: string | null): Guidan
       optional: true,
       guidanceDate,
       completionKey: 'firstWeekDone',
-    })];
+    });
+    if (!retainPreparation) return [completed];
+    return firstWeekTasks({ ...plan, firstWeekDone: 'no' }, guidanceDate)
+      .map(item => item.completionKey === 'firstWeekDone' ? completed : item);
   }
 
   const unknown = plan.firstWeekDone === 'unknown';
@@ -120,8 +124,8 @@ function firstWeekTasks(plan: GuidancePlan, guidanceDate: string | null): Guidan
       id: 'first-week-confirm',
       title: { ja: '初七日の実施方法を確認する', en: 'Confirm plans for the seventh-day service' },
       description: {
-        ja: '行うかどうか、時期や準備を寺院・葬儀社・ご家族などへ確認します。行わない選択もできます。',
-        en: 'Ask the relevant religious contact, funeral service or family whether it will be held and what preparation is wanted. Choosing not to hold it is also possible.',
+        ja: '行うかどうか、時期や準備を寺院・葬儀社・ご家族などへ確認します。葬儀当日に前倒しして行う場合があり、火葬・収骨後に行う形や、告別式後・火葬前の式中（繰り込み）初七日などがあります。名称や形式は寺院等に確認してください。行わない選択もできます。',
+        en: 'Ask the relevant religious contact, funeral service or family about timing and preparation. The service may be brought forward to the funeral day, after cremation and collection of ashes, or within the funeral before cremation. Ask the religious contact about names and forms. Choosing not to hold it is also possible.',
       },
       category: categories.firstWeek,
       group: 'first-week',
@@ -145,10 +149,10 @@ function firstWeekTasks(plan: GuidancePlan, guidanceDate: string | null): Guidan
     }),
     task({
       id: 'first-week-offerings',
-      title: { ja: '初七日のお供えが必要か確認する', en: 'Check whether offerings are wanted for the seventh-day service' },
+      title: { ja: '初七日のお供えを確認・準備する', en: 'Check and prepare offerings for the seventh-day service' },
       description: {
-        ja: '必要な場合は、線香・ろうそく・果物・菓子など、用意するものを寺院等へ確認します。全国共通の必須品とは扱いません。',
-        en: 'If offerings are wanted, ask the relevant religious contact whether to prepare items such as incense, candles, fruit or sweets. These are not treated as universally required items.',
+        ja: '線香・ろうそく・果物・菓子などの必要性と用意するものを寺院等へ確認し、必要な場合だけ準備します。全国共通の必須品とは扱いません。',
+        en: 'Ask the relevant religious contact whether items such as incense, candles, fruit or sweets are wanted, then prepare them only if needed. These are not universally required items.',
       },
       category: categories.firstWeek,
       group: 'first-week',
@@ -161,10 +165,12 @@ function firstWeekTasks(plan: GuidancePlan, guidanceDate: string | null): Guidan
   if (plan.firstWeekMeal !== 'no') {
     tasks.push(task({
       id: 'first-week-meal',
-      title: { ja: '初七日の会食を確認する', en: 'Check meal arrangements for the seventh-day service' },
+      title: plan.firstWeekMeal === 'yes'
+        ? { ja: '初七日の会食を手配する', en: 'Arrange the meal for the seventh-day service' }
+        : { ja: '初七日の会食を行うか確認する', en: 'Check whether a meal will follow the seventh-day service' },
       description: {
-        ja: '会食を行う場合だけ、人数や場所などを確認します。',
-        en: 'Check numbers and location only if the family wants to arrange a meal.',
+        ja: '会食を行う場合だけ、人数や場所などを確認して手配します。',
+        en: 'Only if the family wants a meal, confirm numbers and location and make the arrangements.',
       },
       category: categories.firstWeek,
       group: 'first-week',
@@ -190,32 +196,24 @@ function fortyNineTasks(
   plan: GuidancePlan,
   guidanceDate: string | null,
   scheduledDate: string | null,
+  retainPreparation = false,
 ): GuidanceTask[] {
   const common = { category: categories.fortyNine, group: 'forty-nine' as const, optional: true, guidanceDate, scheduledDate };
   if (plan.fortyNineDone === 'notNeeded') return [];
 
-  if (plan.fortyNineDone === 'yes') {
-    const tasks = [task({
-      id: 'forty-nine-service',
-      title: { ja: '四十九日法要', en: 'Forty-nine-day service' },
-      description: {
-        ja: '実施済みとして確認されています。予定日の到来だけで完了にはしません。',
-        en: 'Recorded as completed. Reaching a planned date alone never marks it complete.',
-      },
-      ...common,
-      done: true,
-      completionKey: 'fortyNineDone',
-    })];
+  const completed = plan.fortyNineDone === 'yes';
+  const afterTasks: GuidanceTask[] = [];
+  if (completed) {
 
     if (plan.altar !== 'no') {
-      tasks.push(task({
+      afterTasks.push(task({
         id: 'forty-nine-altar',
         title: plan.altar === 'yes'
-          ? { ja: '後飾り祭壇の片付け方を確認する', en: 'Check how to put away the temporary altar' }
+          ? { ja: '後飾り祭壇を片付ける', en: 'Put away the temporary altar' }
           : { ja: '後飾り祭壇の片付けが必要か確認する', en: 'Check whether the temporary altar needs attention' },
         description: {
-          ja: '祭壇がある場合だけ、片付ける時期と方法を寺院・葬儀社などへ確認します。',
-          en: 'If there is a temporary altar, ask the relevant religious contact or funeral service when and how to put it away.',
+          ja: '祭壇がある場合だけ、片付ける時期と方法を寺院・葬儀社などへ確認した上で片付けます。四十九日を一区切りにする例がありますが、納骨時期やご家庭によって異なります。',
+          en: 'If there is a temporary altar, confirm when and how with the relevant religious contact or funeral service, then put it away. Some families use the forty-ninth day as a guide; timing differs by interment plans and family.',
         },
         ...common,
         needsConfirmation: plan.altar === 'unknown',
@@ -223,7 +221,7 @@ function fortyNineTasks(
     }
 
     if (plan.tablet !== 'no') {
-      tasks.push(task({
+      afterTasks.push(task({
         id: 'forty-nine-tablet-after',
         title: plan.tablet === 'yes'
           ? { ja: '本位牌等を仏壇へ移す', en: 'Move the memorial tablet to the family altar' }
@@ -236,7 +234,6 @@ function fortyNineTasks(
         needsConfirmation: plan.tablet === 'unknown',
       }));
     }
-    return tasks;
   }
 
   const unknown = plan.fortyNineDone === 'unknown';
@@ -329,12 +326,14 @@ function fortyNineTasks(
   const dayTasks = [
     task({
       id: 'forty-nine-service',
-      title: { ja: '四十九日法要を行う', en: 'Hold the forty-nine-day service' },
+      title: completed ? { ja: '四十九日法要', en: 'Forty-nine-day service' }
+        : { ja: '四十九日法要を行う', en: 'Hold the forty-nine-day service' },
       description: {
         ja: '亡くなった日を1日目として49日目が目安です。読経・焼香を行う形や、ご家族だけでお参りする形などがあり、実際の予定日は目安日と別に扱います。',
         en: 'The forty-ninth day, counting the date of death as day one, is a guide. Examples include chanting and offering incense or a simple family visit; the actual planned date is kept separate from this guide.',
       },
       ...common,
+      done: completed,
       needsConfirmation: unknown,
       completionKey: 'fortyNineDone',
     }),
@@ -372,7 +371,9 @@ function fortyNineTasks(
   });
   if (eyeOpeningTask) dayTasks.push(eyeOpeningTask);
 
-  return [...preparationTasks, ...dayTasks];
+  const shownPreparation = !completed || retainPreparation ? preparationTasks
+    : preparationTasks.filter(item => item.id === 'forty-nine-meal-confirm');
+  return [...shownPreparation, ...dayTasks, ...afterTasks];
 }
 
 function burialTasks(plan: GuidancePlan, guidanceDate: string | null): GuidanceTask[] {
@@ -504,7 +505,7 @@ function belongingsTask(): GuidanceTask {
 }
 
 /** Derive visible tasks without mutating the confirmed answers or saved progress. */
-export function deriveGuidanceTasks(plan: GuidancePlan): GuidanceTask[] {
+export function deriveGuidanceTasks(plan: GuidancePlan, history: RitualWorkHistory = defaultRitualWorkHistory): GuidanceTask[] {
   const dates = guidanceDates(plan);
   const tasks = generalTasks();
 
@@ -522,8 +523,8 @@ export function deriveGuidanceTasks(plan: GuidancePlan): GuidanceTask[] {
       needsConfirmation: true,
     }));
   } else if (plan.rituals === 'yes') {
-    tasks.push(...firstWeekTasks(plan, dates.firstWeek));
-    tasks.push(...fortyNineTasks(plan, dates.fortyNine, dates.scheduledFortyNine));
+    tasks.push(...firstWeekTasks(plan, dates.firstWeek, history.firstWeek));
+    tasks.push(...fortyNineTasks(plan, dates.fortyNine, dates.scheduledFortyNine, history.fortyNine));
   }
 
   tasks.push(...burialTasks(plan, dates.fortyNine));
@@ -537,9 +538,11 @@ export function applyTaskProgress(tasks: GuidanceTask[], progress: TaskProgress)
   return tasks.map(current => {
     const saved = progress[current.id];
     if (!saved) return current;
+    const notNeeded = current.optional && !current.completionKey && saved.notNeeded === true;
     return {
       ...current,
-      done: current.completionKey || typeof saved.done !== 'boolean' ? current.done : saved.done,
+      done: notNeeded ? false : current.completionKey || typeof saved.done !== 'boolean' ? current.done : saved.done,
+      notNeeded,
       assignee: saved.assignee === undefined ? current.assignee : saved.assignee,
     };
   });
