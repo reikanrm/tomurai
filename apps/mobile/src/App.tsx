@@ -10,6 +10,9 @@ import { SpecialistsScreen } from './components/SpecialistsScreen';
 import { GuidanceSettings } from './components/GuidanceSettings';
 import { InheritanceNotice } from './components/InheritanceNotice';
 import { MilestoneSection } from './components/MilestoneSection';
+import { DevelopmentButton, DevelopmentMenu } from './components/DevelopmentMenu';
+import { AccessSheet, LockedTasks } from './components/AccessGate';
+import { defaultAccess, resolveAccess, canEditAnswers, freezeFreeTaskIds, selectTaskAccess, lockAction, type AccessPreview } from './domain/access';
 import { assigneeInitial, members } from './data/demo';
 import { defaultPlan, type GuidancePlan, type GuidanceTask, type TaskProgress } from './domain/guidance-model';
 import { deriveGuidanceTasks, applyTaskProgress } from './domain/guidance';
@@ -45,14 +48,30 @@ function Tomurai() {
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [today, setToday] = useState(todayInJapan);
   const [answerNotice, setAnswerNotice] = useState(false);
+  const [previewAccess, setPreviewAccess] = useState<AccessPreview>(defaultAccess);
+  const [developmentOpen, setDevelopmentOpen] = useState(false);
+  const [previewRevision, setPreviewRevision] = useState(0);
+  const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const [freeTaskIds, setFreeTaskIds] = useState<readonly string[] | null>(null);
+  const access = resolveAccess(previewAccess, __DEV__);
+  const canAnswer = canEditAnswers(access);
+  const activeMember = access.membership === 'active';
   const tasks = applyTaskProgress(deriveGuidanceTasks(plan), progress).sort((a, b) =>
-    (a.scheduledDate ?? a.guidanceDate ?? '9999').localeCompare(b.scheduledDate ?? b.guidanceDate ?? '9999'));
+    (a.scheduledDate ?? a.guidanceDate ?? '9999').localeCompare(b.scheduledDate ?? b.guidanceDate ?? '9999') || a.id.localeCompare(b.id));
+  const taskAccess = selectTaskAccess(tasks, access, freeTaskIds ?? freezeFreeTaskIds(tasks, null));
+  const visibleTasks = taskAccess.visibleTasks;
+  const action = lockAction(access);
   const [filter, setFilter] = useState<Filter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [assignee, setAssignee] = useState<string | null>(null);
   const [pause, setPause] = useState(false);
   const [linkError, setLinkError] = useState('');
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
+  useEffect(() => {
+    if (activeMember && (screen === 'home' || screen === 'tasks') && freeTaskIds === null) {
+      setFreeTaskIds(freezeFreeTaskIds(tasks, null));
+    }
+  }, [activeMember, screen, freeTaskIds, tasks]);
   useEffect(() => {
     const timer = setInterval(() => setToday(todayInJapan()), 60_000);
     return () => clearInterval(timer);
@@ -74,15 +93,18 @@ function Tomurai() {
       if (query.get('lang') === 'en') setLocale('en');
     }).catch(() => {});
   }, []);
-  const selected = tasks.find(task => task.id === selectedId);
-  const doneCount = tasks.filter(task => task.done).length;
+  const selected = visibleTasks.find(task => task.id === selectedId);
+  const doneCount = visibleTasks.filter(task => task.done).length;
   const name = (id: string | null) => members.find(member => member.id === id)?.name[locale] ?? t('未割当', 'Unassigned');
   const applyPlan = (next: GuidancePlan) => {
     if (next.burial === 'done' && plan.burial !== 'done') setBurialBeforeCompletion(plan.burial);
     setEventDates(current => recordPlanEvents(plan, next, today, current));
     setPlan(next);
   };
-  const openTask = (task: GuidanceTask) => { setSelectedId(task.id); setAssignee(task.assignee); };
+  const openTask = (task: GuidanceTask) => {
+    if (!visibleTasks.some(visible => visible.id === task.id)) return;
+    setSelectedId(task.id); setAssignee(task.assignee);
+  };
   const updateTask = (change: { done?: boolean; assignee?: string | null }) => {
     if (!selected) return;
     if (selected.completionKey && change.done !== undefined) applyPlan(planWithCompletion(plan, selected.completionKey, change.done, burialBeforeCompletion));
@@ -96,11 +118,22 @@ function Tomurai() {
   const taskDate = (task: GuidanceTask) => task.scheduledDate
     ? t(`予定日 ${task.scheduledDate}`, `Planned ${task.scheduledDate}`)
     : task.guidanceDate ? t(`目安 ${task.guidanceDate}`, `Guide ${task.guidanceDate}`) : t('日付は個別に確認', 'Check timing individually');
-  const planLink = <Pressable accessibilityRole="button" style={s.secondaryButton} onPress={() => setScreen('guidance')}>
-    <Text style={s.link}>{t('法要・ご供養の確認', 'Rituals & remembrance')}</Text></Pressable>;
-  const inheritance = (context: 'overview' | 'belongings' = 'overview') => <InheritanceNotice locale={locale} deathDate={plan.deathDate} today={today}
-    consideration={plan.inheritance} context={context} onConsiderationChange={value => applyPlan({ ...plan, inheritance: value })}
+  const planLink = canAnswer ? <Pressable accessibilityRole="button" style={s.secondaryButton} onPress={() => setScreen('guidance')}>
+    <Text style={s.link}>{t('法要・ご供養の確認', 'Rituals & remembrance')}</Text></Pressable> : null;
+  const inheritance = (context: 'overview' | 'belongings' = 'overview') => <InheritanceNotice locale={locale} deathDate={activeMember ? plan.deathDate : ''} today={today}
+    consideration={activeMember ? plan.inheritance : 'unknown'} context={context} onConsiderationChange={canAnswer ? value => applyPlan({ ...plan, inheritance: value }) : undefined}
     onFindSupport={() => { setSelectedId(null); void externalMap('相続 弁護士'); }} />;
+  const lockedTasks = taskAccess.hasLocked && action ? <LockedTasks locale={locale} action={action} onPress={() => setAccessSheetOpen(true)} /> : null;
+  const restrictedScreen = (!activeMember && ['home', 'tasks'].includes(screen)) || (!canAnswer && ['onboarding', 'guidance'].includes(screen));
+  const navigate = (next: Screen) => { setSelectedId(null); setAccessSheetOpen(false); setScreen(next); };
+  const changePreview = (next: AccessPreview, destination?: Screen) => {
+    if (!__DEV__) return;
+    setSelectedId(null); setAssignee(null); setPause(false); setAccessSheetOpen(false);
+    setPreviewAccess(next); setDevelopmentOpen(false); setFilter('all');
+    setPreviewRevision(current => current + 1);
+    const target = destination ?? (['onboarding', 'guidance'].includes(screen) ? 'home' : screen);
+    setScreen(target);
+  };
   const renderTask = (task: GuidanceTask) => <Pressable key={task.id} accessibilityRole="button"
     accessibilityLabel={task.title[locale] + ' · ' + (task.done ? t('完了', 'Done') : t('未完了', 'Open')) + ' · ' + name(task.assignee)}
     style={s.item} onPress={() => openTask(task)}>
@@ -115,44 +148,57 @@ function Tomurai() {
 
   return <SafeAreaView style={s.safe}>
     <View style={s.frame}>
-      <ModalBackground hidden={!!selected || pause}>
+      <ModalBackground hidden={!!selected || pause || developmentOpen || accessSheetOpen}>
       <View style={s.header}><Text style={s.brand}>と む ら い</Text>
+        {__DEV__ && <DevelopmentButton locale={locale} onPress={() => setDevelopmentOpen(true)} />}
         <Pressable accessibilityRole="button" accessibilityLabel={locale === 'ja' ? 'Switch to English' : '日本語に切り替える'}
           onPress={() => setLocale(locale === 'ja' ? 'en' : 'ja')} style={s.language}>
           <Text style={s.languageText}>{locale === 'ja' ? 'EN' : '日本語'}</Text></Pressable>
       </View>
       <ScrollView key={screen} style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {screen === 'onboarding' && <Onboarding locale={locale} initialAnswers={answers} onConfirm={next => {
+        {restrictedScreen && <>
+          <Text style={s.eyebrow}>{t('ご家族と進めるために', 'FOR YOUR FAMILY')}</Text>
+          <Text accessibilityRole="header" style={s.title}>{!activeMember ? t('参加の承認をお待ちください', 'Awaiting family approval') : t('回答担当の方が確認します', 'Your respondent manages these answers')}</Text>
+          <Text style={s.copy}>{!activeMember ? t('承認後に、共有された手続きを確認できます。心のケアや相談先の検索は、そのままご利用いただけます。', 'Shared tasks become available after approval. Self-care and support search remain available.') : t('質問の回答や変更は、指定されたお一人が行います。共有されたタスクは、家族で分担できます。', 'One designated person manages the answers. You can share work on the available tasks.')}</Text>
+          {activeMember && <Pressable accessibilityRole="button" style={s.primary} onPress={() => navigate('tasks')}><Text style={s.primaryText}>{t('タスクを見る', 'View tasks')}</Text></Pressable>}
+          <Pressable accessibilityRole="button" style={s.secondaryButton} onPress={() => navigate('care')}><Text style={s.link}>{t('心のケアへ', 'Go to self-care')}</Text></Pressable>
+          {inheritance()}
+        </>}
+        {screen === 'onboarding' && canAnswer && <Onboarding key={previewRevision} locale={locale} initialAnswers={answers} onConfirm={next => {
+          if (!canAnswer) return;
           setAnswers(next);
           const deathDate = next.deathDate === 'unknown' ? '' : next.deathDate ?? '';
           const invalidSchedule = !!(deathDate && plan.fortyNineDate && plan.fortyNineDate < deathDate);
           setAnswerNotice(invalidSchedule);
-          applyPlan({ ...plan, deathDate, tradition: next.shukyou === 'yes' ? 'buddhist' : next.shukyou === 'other' ? 'other' : 'unknown',
-            fortyNineDate: invalidSchedule ? '' : plan.fortyNineDate });
+          const nextPlan: GuidancePlan = { ...plan, deathDate, tradition: next.shukyou === 'yes' ? 'buddhist' : next.shukyou === 'other' ? 'other' : 'unknown',
+            fortyNineDate: invalidSchedule ? '' : plan.fortyNineDate };
+          setFreeTaskIds(current => freezeFreeTaskIds(deriveGuidanceTasks(nextPlan), current));
+          applyPlan(nextPlan);
           setScreen('home');
         }} />}
-        {screen === 'guidance' && <GuidanceSettings locale={locale} plan={plan} onApply={next => { applyPlan(next); setScreen('tasks'); }} onClose={() => setScreen('home')} />}
-        {screen === 'home' && <>
-          <EnsoProgress completed={doneCount} total={tasks.length} label={t('完了', 'completed')} />
+        {screen === 'guidance' && canAnswer && <GuidanceSettings key={previewRevision} locale={locale} plan={plan} onApply={next => { if (canAnswer) { applyPlan(next); setScreen('tasks'); } }} onClose={() => setScreen('home')} />}
+        {screen === 'home' && activeMember && <>
+          <EnsoProgress completed={doneCount} total={visibleTasks.length} label={taskAccess.fullAccess ? t('完了', 'completed') : t('閲覧できるタスクの完了', 'available tasks completed')} />
           <Text accessibilityRole="header" style={s.greeting}>{t('今日は、ご自身のペースで。', 'At your own pace, today.')}</Text>
           <Text style={s.centerCopy}>{t('進められることから、ひとつずつ。\n必要なことを、家族と分けながら。', 'One thing at a time.\nShare what needs to be done with your family.')}</Text>
-          <MilestoneSection locale={locale} context={{ today, plan, eventDates, allTasksDone, dismissed }}
+          <MilestoneSection locale={locale} context={{ today, plan, eventDates, allTasksDone: taskAccess.fullAccess && allTasksDone, dismissed }}
             onDismiss={id => setDismissed(current => [...new Set([...current, id])])} />
           {plan.rituals === 'unknown' && <Text style={s.secondary}>{t('法要やご供養の状況に合わせて、表示することを選べます。', 'Choose guidance to match your family’s plans.')}</Text>}
           {planLink}
           {answerNotice && <Text accessibilityRole="alert" style={s.secondary}>{t('死亡日の変更に伴い、それより前の法要予定日を未定に戻しました。予定を確認してください。', 'The service date preceded the corrected date of death and has been cleared. Please check your plans.')}</Text>}
           {inheritance()}
           <Text style={s.section}>{t('今日、進められること', 'Things you can work on')}</Text>
-          {tasks.filter(task => !task.done).slice(0, 3).map(renderTask)}
-          {tasks.length > 0 && doneCount === tasks.length && <Text style={s.empty}>{t('表示中のタスクに、未完了のものはありません。', 'There are no open tasks in this list.')}</Text>}
+          {visibleTasks.filter(task => !task.done).slice(0, 3).map(renderTask)}
+          {lockedTasks}
+          {visibleTasks.length > 0 && doneCount === visibleTasks.length && <Text style={s.empty}>{t('表示中のタスクに、未完了のものはありません。', 'There are no open tasks in this list.')}</Text>}
           <Pressable accessibilityRole="button" style={s.warmCard} onPress={() => setPause(true)}>
             <Text style={s.leaf}>◌</Text><View style={{ flex: 1 }}><Text style={s.warmTitle}>{t('少し、間（ま）を置く', 'Take a little space')}</Text>
               <Text style={s.secondary}>{t('手続きから離れる時間も。', 'A moment away from the tasks.')}</Text></View><Text style={s.chevron}>›</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" style={s.textButton} onPress={() => setScreen('onboarding')}>
-            <Text style={s.link}>{t('回答を確認・変更する', 'Review or change answers')}</Text></Pressable>
+          {canAnswer && <Pressable accessibilityRole="button" style={s.textButton} onPress={() => setScreen('onboarding')}>
+            <Text style={s.link}>{t('回答を確認・変更する', 'Review or change answers')}</Text></Pressable>}
         </>}
-        {screen === 'tasks' && <>
+        {screen === 'tasks' && activeMember && <>
           <Text style={s.eyebrow}>{t('やることナビ', 'YOUR NEXT STEPS')}</Text>
           <Text accessibilityRole="header" style={s.title}>{t('タスク', 'Tasks')}</Text>
           <Text style={s.copy}>{t('必要なことを、確認しながら。\n担当と進み具合を整理します。', 'Review what needs to be done.\nOrganise responsibilities and progress.')}</Text>
@@ -165,8 +211,9 @@ function Tomurai() {
                 {[t('すべて', 'All'), t('自分の担当', 'Mine'), t('未完了', 'Open'), t('完了済み', 'Done')][i]}
               </Text></Pressable>)}
           </ScrollView>
-          {tasks.filter(task => filter === 'all' || (filter === 'mine' && task.assignee === 'self') || (filter === 'done' && task.done) || (filter === 'open' && !task.done))
+          {visibleTasks.filter(task => filter === 'all' || (filter === 'mine' && task.assignee === 'self') || (filter === 'done' && task.done) || (filter === 'open' && !task.done))
             .map(renderTask)}
+          {lockedTasks}
           {inheritance()}
           <Text style={s.footnote}>{t('アプリで完了にしても、提出・申請などの手続き自体が完了するわけではありません。', 'Marking a task done does not submit or complete the actual procedure.')}</Text>
         </>}
@@ -179,12 +226,14 @@ function Tomurai() {
       </ScrollView>
       {screen !== 'onboarding' && <View style={s.nav} accessibilityRole="tablist">
         {(['home', 'tasks', 'specialists', 'care'] as Screen[]).map((value, i) => <Pressable key={value}
-          accessibilityRole="tab" accessibilityState={{ selected: screen === value }} aria-selected={screen === value} onPress={() => setScreen(value)} style={s.navButton}>
+          accessibilityRole="tab" accessibilityState={{ selected: screen === value }} aria-selected={screen === value} onPress={() => navigate(value)} style={s.navButton}>
           <Text accessible={false} aria-hidden style={[s.navIcon, screen === value && s.navIconActive]}>{navigationIcons[value as keyof typeof navigationIcons]}</Text>
           <Text style={[s.navText, screen === value && s.navActive]}>{[t('ホーム', 'Home'), t('タスク', 'Tasks'), t('専門家', 'Support'), t('心のケア', 'Self-care')][i]}</Text>
         </Pressable>)}
       </View>}
       </ModalBackground>
+      {__DEV__ && developmentOpen && <DevelopmentMenu locale={locale} value={access} onApply={changePreview} onClose={() => setDevelopmentOpen(false)} />}
+      {action && <AccessSheet visible={accessSheetOpen} locale={locale} action={action} activeMemberCount={access.activeMemberCount} onClose={() => setAccessSheetOpen(false)} />}
       <Modal visible={!!selected} transparent animationType="none" accessibilityLabel={selected?.title[locale]}
         onRequestClose={() => setSelectedId(null)}>
         <View style={s.modalBackdrop}><View style={s.sheet} accessibilityViewIsModal>
@@ -196,7 +245,7 @@ function Tomurai() {
             {selected?.optional && <Text style={s.secondary}>{t('ご家庭の状況に合わせて選ぶ任意の候補です。', 'This is an optional suggestion to suit your family.')}</Text>}
             {selected?.group === 'general' && <Text style={s.secondary}>{t('適用条件・提出先・期限は、手続き先へ確認してください。', 'Confirm eligibility, where to apply and deadlines with the relevant authority.')}</Text>}
             {selected?.group === 'belongings' && inheritance('belongings')}
-            {selected?.needsConfirmation && selected.group !== 'general' && <Pressable accessibilityRole="button" style={s.textButton} onPress={() => { setSelectedId(null); setScreen('guidance'); }}>
+            {canAnswer && selected?.needsConfirmation && selected.group !== 'general' && <Pressable accessibilityRole="button" style={s.textButton} onPress={() => { setSelectedId(null); setScreen('guidance'); }}>
               <Text style={s.link}>{t('状況を確認・変更する', 'Review or change these choices')}</Text></Pressable>}
             <Text style={s.section}>{t('担当を割り当てる', 'Assign a family member')}</Text>
             <View style={s.assignment}>{[{ id: null, label: t('未割当', 'Unassigned') }, ...members.map(member => ({ id: member.id, label: member.name[locale] }))].map(member =>
