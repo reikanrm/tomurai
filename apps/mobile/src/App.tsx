@@ -1,18 +1,30 @@
 import { useEffect, useState } from 'react';
+import { useFonts } from 'expo-font';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { EnsoProgress } from './components/EnsoProgress';
 import { Onboarding } from './components/Onboarding';
 import { ModalBackground } from './components/ModalBackground';
-import { demoTasks, members, type DemoTask } from './data/demo';
+import { CareScreen } from './components/CareScreen';
+import { SpecialistsScreen } from './components/SpecialistsScreen';
+import { assigneeInitial, demoTasks, members, type DemoTask } from './data/demo';
+import { bundledNotoFonts } from './fonts';
+import { googleMapsSearchUrl } from './domain/maps';
+import { navigationIcons } from './data/navigation';
 import type { Locale } from './data/questions';
-import { colors as c, font } from './theme';
+import { colors as c, font, fonts } from './theme';
 
 type Screen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care';
 const screens: Screen[] = ['onboarding', 'home', 'tasks', 'specialists', 'care'];
 type Filter = 'all' | 'mine' | 'open' | 'done';
 
 export default function App() {
+  const [fontsLoaded, fontError] = useFonts(bundledNotoFonts);
+  if (!fontsLoaded) return <SafeAreaProvider><SafeAreaView style={[s.safe, s.loading]}>
+    <Text accessibilityRole={fontError ? 'alert' : undefined} style={s.loadingText}>
+      {fontError ? '文字を読み込めませんでした。アプリを開き直してください。\nUnable to load fonts. Please reopen the app.' : 'と む ら い\n文字を準備しています…'}
+    </Text>
+  </SafeAreaView></SafeAreaProvider>;
   return <SafeAreaProvider><Tomurai /></SafeAreaProvider>;
 }
 function Tomurai() {
@@ -23,7 +35,6 @@ function Tomurai() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [assignee, setAssignee] = useState<string | null>(null);
   const [pause, setPause] = useState(false);
-  const [mood, setMood] = useState<string | null>(null);
   const [linkError, setLinkError] = useState('');
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
   useEffect(() => {
@@ -40,11 +51,11 @@ function Tomurai() {
   const name = (id: string | null) => members.find(member => member.id === id)?.name[locale] ?? t('未割当', 'Unassigned');
   const openTask = (task: DemoTask) => { setSelectedId(task.id); setAssignee(task.assignee); };
   const updateTask = (change: Partial<DemoTask>) => {
-    setTasks(tasks.map(task => task.id === selectedId ? { ...task, ...change } : task));
+    setTasks(current => current.map(task => task.id === selectedId ? { ...task, ...change } : task));
   };
   const externalMap = async (query: string) => {
     setLinkError('');
-    try { await Linking.openURL('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query)); }
+    try { await Linking.openURL(googleMapsSearchUrl(query)); }
     catch { setLinkError(t('地図を開けませんでした。通信環境を確認して、もう一度お試しください。', 'Unable to open Maps. Check your connection and try again.')); }
   };
   const renderTask = (task: DemoTask) => <Pressable key={task.id} accessibilityRole="button"
@@ -54,7 +65,9 @@ function Tomurai() {
     <View style={{ flex: 1 }}><Text style={s.itemMeta}>{task.done ? t('完了', 'Done') : t('期限は未計算・表示サンプル', 'Sample · deadline not calculated')}</Text>
       <Text style={[s.itemTitle, task.done && s.completedText]}>{task.title[locale]}</Text>
       <Text style={s.secondary}>{t('担当：', 'Assigned: ')}{name(task.assignee)}</Text></View>
-    <Text style={s.chevron}>›</Text>
+    {task.assignee && <View style={s.avatar} accessible={false} aria-hidden>
+      <Text style={s.avatarText}>{assigneeInitial(task.assignee, locale)}</Text>
+    </View>}
   </Pressable>;
 
   return <SafeAreaView style={s.safe}>
@@ -65,8 +78,7 @@ function Tomurai() {
           onPress={() => setLocale(locale === 'ja' ? 'en' : 'ja')} style={s.language}>
           <Text style={s.languageText}>{locale === 'ja' ? 'EN' : '日本語'}</Text></Pressable>
       </View>
-      <ScrollView key={screen} style={s.scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-        {screen !== 'onboarding' && <Text style={s.demo}>{t('開発プレビュー · 家族プランのサンプル', 'Development preview · family-plan sample')}</Text>}
+      <ScrollView key={screen} style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {screen === 'onboarding' && <Onboarding locale={locale} onConfirm={() => setScreen('home')} />}
         {screen === 'home' && <>
           <EnsoProgress completed={doneCount} total={tasks.length} label={t('完了', 'completed')} />
@@ -99,40 +111,18 @@ function Tomurai() {
             .map(renderTask)}
           <Text style={s.footnote}>{t('操作はこのプレビュー内のみ。実際の手続きは完了しません。', 'Changes affect only this preview, not any real procedure.')}</Text>
         </>}
-        {screen === 'specialists' && <>
-          <Text style={s.eyebrow}>{t('相談先を探す', 'FIND SUPPORT')}</Text>
-          <Text accessibilityRole="header" style={s.title}>{t('専門家に相談', 'Professional support')}</Text>
-          <Text style={s.copy}>{t('確認したい分野から、\nGoogle Mapsで相談先を探せます。', 'Choose a field to search\nfor support in Google Maps.')}</Text>
-          {[[t('相続・法律', 'Inheritance & law'), '弁護士 司法書士 相続'], [t('税金のこと', 'Tax questions'), '税理士 相続'], [t('遺品整理', 'Sorting belongings'), '遺品整理']].map(([label, query]) =>
-            <Pressable key={query} accessibilityRole="link" accessibilityLabel={label + t('、外部のGoogle Mapsを開く', ', opens Google Maps')}
-              onPress={() => externalMap(query!)} style={s.mapRow}>
-              <Text style={s.itemTitle}>{label}</Text><Text style={s.link}>↗</Text></Pressable>)}
-          {linkError ? <Text accessibilityRole="alert" style={s.error}>{linkError}</Text> : null}
-          <View style={s.notice}><Text style={s.warmTitle}>{t('Tomurai提携パートナー', 'Tomurai partners')}</Text>
-            <Text style={s.copy}>{t('提携先の地図は準備中です。掲載先・表示の確認が済んでからご案内します。', 'The partner map is being prepared. Listings and disclosure will be reviewed before release.')}</Text></View>
-          <Text style={s.footnote}>{t('相談内容や家族の情報を、自動送信することはありません。現在地へのアクセスも行いません。', 'We do not automatically send your questions or family information. This preview does not access your location.')}</Text>
-        </>}
+        {screen === 'specialists' && <SpecialistsScreen locale={locale} onOpenMap={externalMap} error={linkError} />}
         {screen === 'care' && <>
-          <Text style={s.eyebrow}>{t('こころのケア', 'SPACE FOR YOURSELF')}</Text>
-          <Text accessibilityRole="header" style={s.title}>{t('こころのケア', 'Care for yourself')}</Text>
-          <Text style={s.copy}>{t('手続きとは別に、ご自身のための時間を。', 'A little time for yourself, apart from the tasks.')}</Text>
-          <View style={s.careQuote}><Text style={s.quote}>{t('今の気持ちに、正解はありません。\n何かを感じても、何も感じなくても。\n今は、そのままで大丈夫です。', 'There is no right way to feel.\nYou may feel something, or nothing at all.\nThere is no need to change that right now.')}</Text></View>
-          <Text style={s.copy}>{t('気持ちは、日によって変わることがあります。\n無理に整理しようとせず、今の自分に合った過ごし方を探してみましょう。', 'Feelings can change from day to day.\nYou do not have to make sense of everything. Explore what suits you now.')}</Text>
-          <Text style={s.section}>{t('今に近いものがあれば（任意）', 'If one feels close to you (optional)')}</Text>
-          <View style={s.moods}>{[t('ぼんやり', 'Numb'), t('怒りがある', 'Angry'), t('少し楽', 'A little lighter'), t('何も感じない', 'Feeling nothing'), t('安心している', 'Relieved')].map(label =>
-            <Pressable key={label} accessibilityRole="button" accessibilityState={{ selected: mood === label }} aria-pressed={mood === label}
-              style={[s.chip, mood === label && s.moodSelected]} onPress={() => setMood(mood === label ? null : label)}>
-              <Text style={s.chipText}>{label}</Text></Pressable>)}</View>
-          <Text style={s.footnote}>{t('選ばなくても大丈夫です。気持ちの履歴は保存しません。', 'You do not have to choose. No mood history is saved.')}</Text>
-          <Pressable accessibilityRole="button" onPress={() => setPause(true)} style={s.warmCard}>
-            <Text style={s.warmTitle}>{t('少し、間（ま）を置く', 'Take a little space')}　→</Text></Pressable>
+          <CareScreen locale={locale} onPause={() => setPause(true)} onFindSupport={() => externalMap('グリーフケア カウンセリング')} />
+          {linkError ? <Text accessibilityRole="alert" style={s.error}>{linkError}</Text> : null}
         </>}
+        {screen !== 'onboarding' && <Text style={s.demo}>{t('開発プレビュー · 家族プランのサンプル', 'Development preview · family-plan sample')}</Text>}
       </ScrollView>
       {screen !== 'onboarding' && <View style={s.nav} accessibilityRole="tablist">
         {(['home', 'tasks', 'specialists', 'care'] as Screen[]).map((value, i) => <Pressable key={value}
           accessibilityRole="tab" accessibilityState={{ selected: screen === value }} aria-selected={screen === value} onPress={() => setScreen(value)} style={s.navButton}>
-          <Text style={[s.navIcon, screen === value && s.navActive]}>{['○', '☰', '↗', '◌'][i]}</Text>
-          <Text style={[s.navText, screen === value && s.navActive]}>{[t('ホーム', 'Home'), t('タスク', 'Tasks'), t('専門家', 'Support'), t('こころのケア', 'Self-care')][i]}</Text>
+          <Text accessible={false} aria-hidden style={[s.navIcon, screen === value && s.navIconActive]}>{navigationIcons[value as keyof typeof navigationIcons]}</Text>
+          <Text style={[s.navText, screen === value && s.navActive]}>{[t('ホーム', 'Home'), t('タスク', 'Tasks'), t('専門家', 'Support'), t('心のケア', 'Self-care')][i]}</Text>
         </Pressable>)}
       </View>}
       </ModalBackground>
@@ -145,9 +135,12 @@ function Tomurai() {
             <Text style={s.copy}>{t('これは操作確認用のサンプルです。手続きの適用条件・提出先・期限は、監修済み情報への接続後に表示します。', 'This is an interaction sample. Reviewed eligibility, authority and deadline information will be connected later.')}</Text>
             <Text style={s.section}>{t('担当を割り当てる', 'Assign a family member')}</Text>
             <View style={s.assignment}>{[{ id: null, label: t('未割当', 'Unassigned') }, ...members.map(member => ({ id: member.id, label: member.name[locale] }))].map(member =>
-              <Pressable key={member.id ?? 'none'} accessibilityRole="radio" accessibilityState={{ checked: assignee === member.id }} aria-checked={assignee === member.id}
-                style={[s.chip, assignee === member.id && s.chipSelected]} onPress={() => setAssignee(member.id)}>
-                <Text style={[s.chipText, assignee === member.id && s.chipTextSelected]}>{member.label}</Text></Pressable>)}</View>
+              <Pressable key={member.id ?? 'none'} accessibilityRole="radio" accessibilityLabel={member.label} accessibilityState={{ checked: assignee === member.id }} aria-checked={assignee === member.id}
+                style={s.assigneeTarget} onPress={() => setAssignee(member.id)}>
+                <View style={[s.assigneePill, assignee === member.id && s.assigneeSelected]}>
+                  <View style={s.assigneeDot} accessible={false} aria-hidden><Text style={s.assigneeInitial}>{assigneeInitial(member.id, locale)}</Text></View>
+                  <Text style={[s.assigneeText, assignee === member.id && s.assigneeTextSelected]}>{member.label}</Text>
+                </View></Pressable>)}</View>
             <Pressable accessibilityRole="button" style={s.primary} onPress={() => { updateTask({ assignee }); setSelectedId(null); }}>
               <Text style={s.primaryText}>{t('担当を保存する', 'Save assignment')}</Text></Pressable>
             <Pressable accessibilityRole="button" style={s.secondaryButton} onPress={() => { updateTask({ done: !selected?.done }); setSelectedId(null); }}>
@@ -169,45 +162,50 @@ function Tomurai() {
 }
 
 const s = StyleSheet.create({
+  loading: { justifyContent: 'center', alignItems: 'center', padding: 24 }, loadingText: { fontSize: 14, lineHeight: 25, textAlign: 'center', color: c.ink },
   safe: { flex: 1, backgroundColor: '#DCD5C4' }, frame: { flex: 1, backgroundColor: c.paper, width: '100%', maxWidth: 430, alignSelf: 'center' },
-  header: { borderBottomWidth: 1, borderColor: c.line, minHeight: 64, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 64 },
-  brand: { fontFamily: font, fontSize: 14, color: c.greenSoft, letterSpacing: 4 },
+  header: { borderBottomWidth: 1, borderColor: c.line, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, paddingTop: 22, paddingBottom: 14 },
+  brand: { fontFamily: font, fontSize: 14, lineHeight: 20, color: c.greenSoft, letterSpacing: 4.2 },
   language: { position: 'absolute', right: 12, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
-  languageText: { color: c.green, fontFamily: font, fontSize: 12 }, scroll: { flex: 1 }, content: { padding: 24, paddingTop: 25, paddingBottom: 34 },
-  demo: { fontFamily: font, color: c.muted, fontSize: 11, textAlign: 'center', marginBottom: 20, lineHeight: 18 },
-  greeting: { fontFamily: font, color: c.ink, fontSize: 22, fontWeight: '600', lineHeight: 36, textAlign: 'center', marginBottom: 13 },
+  languageText: { color: c.green, fontFamily: font, fontSize: 12 }, scroll: { flex: 1 }, content: { paddingHorizontal: 24, paddingTop: 26, paddingBottom: 34 },
+  demo: { fontFamily: font, color: c.muted, fontSize: 11, textAlign: 'center', marginTop: 24, lineHeight: 18 },
+  greeting: { fontFamily: fonts.bold, color: c.ink, fontSize: 22, lineHeight: 36, textAlign: 'center', marginBottom: 13 },
   centerCopy: { fontFamily: font, fontSize: 14, lineHeight: 25, color: c.muted, textAlign: 'center', marginBottom: 15 },
-  eyebrow: { fontFamily: font, fontSize: 11, letterSpacing: 1.5, color: c.muted, marginBottom: 9 },
-  title: { fontFamily: font, fontSize: 24, fontWeight: '600', color: c.ink, marginBottom: 12, lineHeight: 36 },
-  copy: { fontFamily: font, color: c.muted, fontSize: 14, lineHeight: 25, marginBottom: 20 },
-  section: { fontFamily: font, color: c.ink, fontSize: 15, fontWeight: '500', borderBottomWidth: 1, borderColor: c.line, paddingBottom: 12, marginTop: 25, marginBottom: 3 },
-  item: { flexDirection: 'row', gap: 13, paddingVertical: 18, borderBottomWidth: 1, borderColor: c.line, minHeight: 78 },
-  checkbox: { width: 20, height: 20, borderWidth: 1, borderColor: c.greenSoft, borderRadius: 3, marginTop: 4, justifyContent: 'center', alignItems: 'center' },
+  eyebrow: { fontFamily: font, fontSize: 11, lineHeight: 16, letterSpacing: 1.76, color: c.muted, marginBottom: 8 },
+  title: { fontFamily: fonts.bold, fontSize: 22, color: c.ink, marginBottom: 6, lineHeight: 32 },
+  copy: { fontFamily: fonts.regular, color: c.muted, fontSize: 14, lineHeight: 25.9, marginBottom: 26 },
+  section: { fontFamily: fonts.medium, color: c.ink, fontSize: 14.5, lineHeight: 21, borderBottomWidth: 1, borderColor: c.line, paddingBottom: 10, marginTop: 34, marginBottom: 4 },
+  item: { flexDirection: 'row', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderColor: c.line, minHeight: 78 },
+  checkbox: { width: 19, height: 19, borderWidth: 1.5, borderColor: c.greenSoft, borderRadius: 3, marginTop: 2, justifyContent: 'center', alignItems: 'center' },
   checked: { backgroundColor: c.green }, checkmark: { color: c.white, fontSize: 14 },
   itemMeta: { fontFamily: font, fontSize: 11, color: c.green, marginBottom: 5, lineHeight: 18 },
-  itemTitle: { fontFamily: font, fontSize: 15, fontWeight: '500', color: c.ink, lineHeight: 24, marginBottom: 4 },
+  itemTitle: { fontFamily: fonts.medium, fontSize: 15, color: c.ink, lineHeight: 22, marginBottom: 4 },
+  avatar: { width: 24, height: 24, flexShrink: 0, borderRadius: 12, borderWidth: 1, borderColor: c.line, backgroundColor: c.paperDeep, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: font, fontSize: 9.5, lineHeight: 14, color: c.muted },
   completedText: { textDecorationLine: 'line-through', color: c.muted },
   secondary: { fontFamily: font, fontSize: 12, color: c.muted, lineHeight: 21 }, chevron: { fontSize: 22, color: c.greenSoft, alignSelf: 'center' },
   warmCard: { flexDirection: 'row', gap: 13, alignItems: 'center', backgroundColor: c.warmPaper, borderWidth: 1, borderColor: c.warmLine, borderRadius: 3, padding: 18, marginTop: 25, minHeight: 74 },
-  warmTitle: { color: c.warm, fontFamily: font, fontSize: 15, fontWeight: '600', lineHeight: 24, marginBottom: 3 },
+  warmTitle: { color: c.warm, fontFamily: fonts.medium, fontSize: 15, lineHeight: 24, marginBottom: 3 },
   leaf: { fontSize: 30, color: c.warm }, link: { fontFamily: font, fontSize: 14, color: c.green, lineHeight: 23 },
   textButton: { minHeight: 48, padding: 12, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   footnote: { fontFamily: font, fontSize: 12, lineHeight: 21, color: c.muted, marginTop: 20, textAlign: 'center' },
   filters: { gap: 8, paddingBottom: 18 }, chip: { borderWidth: 1, borderColor: c.line, borderRadius: 24, paddingHorizontal: 15, paddingVertical: 12, minHeight: 44, justifyContent: 'center' },
   chipSelected: { backgroundColor: c.green, borderColor: c.green }, chipText: { fontFamily: font, fontSize: 13, color: c.muted, lineHeight: 20 },
   chipTextSelected: { color: c.white }, assignment: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 20 },
-  nav: { flexDirection: 'row', borderTopWidth: 1, borderColor: c.line, paddingVertical: 8, backgroundColor: c.paper },
-  navButton: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, minHeight: 54, gap: 4 },
-  navIcon: { fontSize: 22, color: c.muted }, navText: { fontFamily: font, fontSize: 10, color: c.muted }, navActive: { color: c.green, fontWeight: '600' },
+  assigneeTarget: { minHeight: 44, justifyContent: 'center' },
+  assigneePill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingLeft: 6, paddingRight: 12, borderWidth: 1, borderColor: c.line, borderRadius: 20 },
+  assigneeSelected: { borderColor: c.green, backgroundColor: c.paperDeep },
+  assigneeDot: { width: 19, height: 19, borderRadius: 10, borderWidth: 1, borderColor: c.line, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center' },
+  assigneeInitial: { fontFamily: font, fontSize: 9, lineHeight: 13, color: c.muted }, assigneeText: { fontFamily: font, fontSize: 12, lineHeight: 17, color: c.muted }, assigneeTextSelected: { color: c.green },
+  nav: { flexDirection: 'row', borderTopWidth: 1, borderColor: c.line, paddingVertical: 9, paddingHorizontal: 6, backgroundColor: c.paper },
+  navButton: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4, minHeight: 47, gap: 4 },
+  navIcon: { fontFamily: fonts.regular, fontSize: 17, lineHeight: 25, color: c.muted, opacity: .5 }, navIconActive: { color: c.green, opacity: 1 },
+  navText: { fontFamily: fonts.regular, fontSize: 10, lineHeight: 14, color: c.muted }, navActive: { color: c.green },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(35,41,34,.38)', justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 480, maxHeight: '88%', backgroundColor: c.paper, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   primary: { minHeight: 52, backgroundColor: c.green, borderRadius: 3, padding: 15, alignItems: 'center', justifyContent: 'center' },
   primaryText: { color: c.white, fontSize: 15, fontFamily: font }, secondaryButton: { borderWidth: 1, borderColor: c.line, minHeight: 52, marginTop: 12, padding: 15, alignItems: 'center', borderRadius: 3 },
-  mapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderWidth: 1, borderColor: c.line, marginBottom: 13, gap: 12 },
-  notice: { backgroundColor: c.paperDeep, padding: 18, marginTop: 18 }, error: { color: '#8C3824', fontSize: 14 },
-  careQuote: { backgroundColor: c.warmPaper, borderWidth: 1, borderColor: c.warmLine, borderRadius: 3, padding: 23, marginVertical: 10, marginBottom: 24 },
-  quote: { fontFamily: font, color: c.ink, fontSize: 16, lineHeight: 32, textAlign: 'center' },
-  moods: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', paddingTop: 18 }, moodSelected: { borderColor: c.warm, backgroundColor: c.warmPaper },
+  error: { fontFamily: font, color: '#8C3824', fontSize: 14, lineHeight: 24 },
   pause: { flex: 1, backgroundColor: c.warm, justifyContent: 'center', alignItems: 'center', padding: 32 },
   pauseBrand: { fontFamily: font, color: c.white, fontSize: 13, letterSpacing: 4, marginBottom: 35 },
   pauseTitle: { fontFamily: font, color: c.white, fontSize: 28, lineHeight: 47, textAlign: 'center' },

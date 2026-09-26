@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { progressValue, revealSector, isValidPastDate } from '../apps/mobile/src/domain/progress.ts';
 
 test('progress tracks actual completed work and supports going back', () => {
@@ -20,6 +22,18 @@ test('SVG reveal remains finite for all supported progress', () => {
     assert.ok(!path.includes('NaN') && !path.includes('Infinity'));
   }
   assert.notEqual(revealSector(0), revealSector(1));
+});
+
+test('reveal starts at the bottom gap, retaining the original brush bulb', () => {
+  assert.ok(revealSector(2 / 6).startsWith('M100 100 L100 250 '));
+  assert.equal(revealSector(0), 'M100 100 Z');
+  assert.equal(revealSector(1), 'M0 0 H200 V200 H0 Z');
+});
+
+test('enso uses the supplied image unchanged, not a redrawn substitute', () => {
+  const png = readFileSync(new URL('../apps/mobile/assets/enso-original.png', import.meta.url));
+  assert.equal(createHash('sha256').update(png).digest('hex'),
+    '607ca0f5e83fc66b3ccff4358b4e8c7fa3dc39fcfd78cf850f72e7db8949f00d');
 });
 test('date rejects rollover, future date and malformed date without deriving a legal deadline', () => {
   assert.equal(isValidPastDate('2024-02-29', '2026-09-26'), true);

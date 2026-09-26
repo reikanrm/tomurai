@@ -9,12 +9,16 @@ export function progressValue(completed: number, total: number) {
 /** Reveal a brush-shaped mark, not a geometrically perfect ring. */
 export function revealSector(ratio: number): string {
   const p = Number.isFinite(ratio) ? Math.min(1, Math.max(0, ratio)) : 0;
-  const start = 132 * Math.PI / 180;
-  const end = start + p * 328 * Math.PI / 180;
+  if (p === 0) return 'M100 100 Z';
+  if (p === 1) return 'M0 0 H200 V200 H0 Z';
+  // The original ink begins around 96 degrees, immediately after the bottom
+  // gap. Starting at 132 degrees cuts off the bulb of the first brushstroke.
+  const start = 90 * Math.PI / 180;
+  const end = start + p * 360 * Math.PI / 180;
   const point = (angle: number) => [100 + 150 * Math.cos(angle), 100 + 150 * Math.sin(angle)];
-  const a = point(start);
+  const a = [100, 250]; // exact bottom point; avoid floating-point cos(PI/2) noise
   const b = point(end);
-  return `M100 100 L${a[0]} ${a[1]} A150 150 0 ${p * 328 > 180 ? 1 : 0} 1 ${b[0]} ${b[1]} Z`;
+  return `M100 100 L${a[0]} ${a[1]} A150 150 0 ${p * 360 > 180 ? 1 : 0} 1 ${b[0]} ${b[1]} Z`;
 }
 
 export function isValidPastDate(value: string, today: string): boolean {

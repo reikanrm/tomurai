@@ -1,10 +1,12 @@
 import type { TextPair } from './questions';
 export type DemoTask = { id: string; title: TextPair; category: TextPair; done: boolean; assignee: string | null };
 export const members = [
-  { id: 'self', name: { ja: '自分', en: 'Me' } },
-  { id: 'family-a', name: { ja: '家族 A', en: 'Family A' } },
-  { id: 'family-b', name: { ja: '家族 B', en: 'Family B' } },
+  { id: 'self', name: { ja: '自分', en: 'Me' }, initial: { ja: '自', en: 'Me' } },
+  { id: 'family-a', name: { ja: '家族 A', en: 'Family A' }, initial: { ja: 'A', en: 'A' } },
+  { id: 'family-b', name: { ja: '家族 B', en: 'Family B' }, initial: { ja: 'B', en: 'B' } },
 ];
+export const assigneeInitial = (id: string | null, locale: keyof TextPair) =>
+  members.find(member => member.id === id)?.initial[locale] ?? '—';
 export const demoTasks: DemoTask[] = [
   { id: 'sample-1', title: { ja: '死亡診断書の受け取り', en: 'Receive the medical certificate' }, category: { ja: '行政手続き', en: 'Public procedures' }, done: true, assignee: 'self' },
   { id: 'sample-2', title: { ja: '死亡届の提出について確認する', en: 'Check how to register the death' }, category: { ja: '行政手続き', en: 'Public procedures' }, done: false, assignee: 'self' },

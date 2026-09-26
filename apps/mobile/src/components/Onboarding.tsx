@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { questions, type Locale } from '../data/questions';
 import { isValidPastDate } from '../domain/progress';
-import { colors as c, font } from '../theme';
+import { colors as c, font, fonts } from '../theme';
 import { EnsoProgress } from './EnsoProgress';
 
 export function Onboarding({ locale, onConfirm }: {
@@ -29,7 +29,8 @@ export function Onboarding({ locale, onConfirm }: {
   };
   return <View style={s.root}>
     <EnsoProgress completed={Math.max(0, step)} total={questions.length}
-      label={t('質問の確認', 'questions reviewed')} size={132} />
+      appearance={step < 0 ? 'brand' : 'progress'}
+      label={step < 0 ? t('全10問・あとで確認も選べます', '10 questions · you can check later') : t('質問の確認', 'questions reviewed')} size={132} />
     {step < 0 ? <>
       <Text style={s.eyebrow}>{t('はじめに', 'GETTING STARTED')}</Text>
       <Text accessibilityRole="header" style={s.title}>{t('必要なことを、\nひとつずつ。', 'One thing\nat a time.')}</Text>
@@ -92,12 +93,12 @@ function Option({ label, selected, onPress }: { label: string; selected: boolean
 }
 const s = StyleSheet.create({
   root: { paddingTop: 6 }, eyebrow: { color: c.muted, fontFamily: font, textAlign: 'center', fontSize: 12, letterSpacing: 1.4, marginBottom: 13 },
-  title: { fontFamily: font, color: c.ink, fontSize: 25, fontWeight: '600', lineHeight: 39, textAlign: 'center', marginBottom: 16 },
+  title: { fontFamily: fonts.bold, color: c.ink, fontSize: 25, lineHeight: 39, textAlign: 'center', marginBottom: 16 },
   copy: { fontFamily: font, color: c.muted, fontSize: 14, lineHeight: 25, textAlign: 'center', marginBottom: 28 },
   note: { borderLeftWidth: 2, borderLeftColor: c.greenSoft, padding: 18, backgroundColor: c.paperDeep, marginBottom: 32 },
   noteText: { fontFamily: font, color: c.muted, fontSize: 14, lineHeight: 24 },
   primary: { backgroundColor: c.green, borderRadius: 3, minHeight: 52, padding: 16, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-  primaryText: { color: c.white, fontFamily: font, fontSize: 15, fontWeight: '500', textAlign: 'center' },
+  primaryText: { color: c.white, fontFamily: fonts.medium, fontSize: 15, textAlign: 'center' },
   disabled: { opacity: .45 }, option: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: c.line, borderRadius: 3, padding: 17, minHeight: 60, marginBottom: 10, gap: 14 },
   selected: { borderColor: c.green, backgroundColor: '#EFF3EF' },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: c.greenSoft, justifyContent: 'center', alignItems: 'center' },
