@@ -51,8 +51,8 @@ export function EnsoProgress({ completed, total, label, size = 116, appearance =
           width={1024 * scale} height={1024 * scale} />
       </Mask></Defs>
       <G mask={`url(#${id})`}>
-        <Rect width={200} height={200} fill={isBrand || shown >= 1 ? colors.green : colors.line} />
-        {!isBrand && shown > 0 && shown < 1 && <Path d={revealSector(shown)} fill={colors.green} />}
+        <Rect width={200} height={200} fill={isBrand || shown >= 1 ? colors.enso : colors.line} />
+        {!isBrand && shown > 0 && shown < 1 && <Path d={revealSector(shown)} fill={colors.enso} />}
       </G>
     </Svg>
     <Text style={styles.caption} accessible={false}>{isBrand ? label : `${value.completed} / ${value.total}　${label}`}</Text>

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { progressValue, revealSector, isValidPastDate } from '../apps/mobile/src/domain/progress.ts';
+import { colors } from '../apps/mobile/src/theme.ts';
 
 test('progress tracks actual completed work and supports going back', () => {
   assert.equal(progressValue(0, 10).ratio, 0);
@@ -35,6 +36,24 @@ test('enso uses the supplied image unchanged, not a redrawn substitute', () => {
   assert.equal(createHash('sha256').update(png).digest('hex'),
     '607ca0f5e83fc66b3ccff4358b4e8c7fa3dc39fcfd78cf850f72e7db8949f00d');
 });
+
+test('enso has a dedicated black token without changing other UI or unfinished colors', () => {
+  assert.equal(colors.enso, '#000000');
+  assert.equal(colors.green, '#2B5545');
+  assert.equal(colors.line, '#DCD8CC');
+});
+
+test('brand, partial and completed enso use black while unfinished ink stays pale', () => {
+  // A narrow source contract complements the progress/asset tests; rendering is
+  // still checked separately in the browser and Android preview.
+  const source = readFileSync(new URL('../apps/mobile/src/components/EnsoProgress.tsx', import.meta.url), 'utf8');
+  const rect = source.match(/<Rect\b[\s\S]*?\/>/)?.[0] ?? '';
+  const path = source.match(/<Path\b[\s\S]*?\/>/)?.[0] ?? '';
+  assert.match(rect, /fill=\{\s*isBrand\s*\|\|\s*shown\s*>=\s*1\s*\?\s*colors\.enso\s*:\s*colors\.line\s*\}/);
+  assert.match(path, /fill=\{\s*colors\.enso\s*\}/);
+  assert.doesNotMatch(source, /colors\.green\b/);
+});
+
 test('date rejects rollover, future date and malformed date without deriving a legal deadline', () => {
   assert.equal(isValidPastDate('2024-02-29', '2026-09-26'), true);
   for (const input of ['2025-02-29', '2026-09-27', '2026-2-1', 'unknown', '']) {
