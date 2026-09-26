@@ -60,3 +60,13 @@ test('date rejects rollover, future date and malformed date without deriving a l
     assert.equal(isValidPastDate(input, '2026-09-26'), false);
   }
 });
+
+test('logo dimensions are halved, while its caption remains 12px', () => {
+  const source = readFileSync(new URL('../apps/mobile/src/components/EnsoProgress.tsx', import.meta.url), 'utf8');
+  assert.match(source, /const logoSize = size \* 0\.5/);
+  assert.match(source, /<Svg width=\{logoSize\} height=\{logoSize\}/);
+  assert.match(source, /caption: \{[^}]*fontSize: 12/);
+  assert.match(source, /size = 116/);
+  const onboarding = readFileSync(new URL('../apps/mobile/src/components/Onboarding.tsx', import.meta.url), 'utf8');
+  assert.match(onboarding, /size=\{132\}/);
+});

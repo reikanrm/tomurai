@@ -27,6 +27,8 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
       <Text style={s.quoteSign}>{t('— とむらいより', '— From Tomurai')}</Text>
     </View>
 
+    <Text style={s.supplement}>{t('気持ちは、日によって変わることがあります。\n無理に整理しようとせず、今の自分に合った過ごし方を探してみましょう。', 'Feelings can change from day to day.\nThere is no need to force them into order. Explore ways to spend your time that suit you now.')}</Text>
+
     <Text accessibilityRole="header" style={s.moodTitle}>{t('今のお気持ちに近いものは', 'How do you feel right now?')}</Text>
     <View style={s.moods}>
       {careMoods.map(option => <Pressable key={option.id}
@@ -52,19 +54,11 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
         <Text style={s.actionSub}>{t('Google Mapsで相談先を探します', 'Find support in Google Maps')}</Text>
       </View>
     </Pressable>
-    <Pressable accessibilityRole="button" onPress={onPause} style={s.actionRow}>
+    <Pressable accessibilityRole="button" onPress={onPause} style={[s.actionRow, s.lastAction]}>
       <View style={s.actionIconBox}><Text accessible={false} aria-hidden style={s.actionIcon}>🌿</Text></View>
       <View style={s.actionCopy}>
         <Text style={s.actionTitle}>{t('少し、間（ま）を置く', 'Take a little space')}</Text>
         <Text style={s.actionSub}>{t('手続きから離れて、ひと息つく時間を', 'A moment away from the tasks')}</Text>
-      </View>
-    </Pressable>
-    <Pressable accessibilityRole="button" disabled accessibilityState={{ disabled: true }}
-      style={[s.actionRow, s.lastAction]}>
-      <View style={s.actionIconBox}><Text accessible={false} aria-hidden style={s.actionIcon}>✎</Text></View>
-      <View style={s.actionCopy}>
-        <Text style={s.actionTitle}>{t('思い出を書き留めておく', 'Write down a memory')}</Text>
-        <Text style={s.actionSub}>{t('準備中 · このプレビューでは記録できません', 'Coming later · Not available in this preview')}</Text>
       </View>
     </Pressable>
   </>;
@@ -82,6 +76,7 @@ const s = StyleSheet.create({
   quoteCard: { backgroundColor: c.warmPaper, borderWidth: 1, borderColor: c.warmLine, borderRadius: 3, paddingVertical: 26, paddingHorizontal: 22, marginBottom: 34 },
   quote: { fontFamily: fonts.light, fontSize: 16, lineHeight: 32, color: c.ink, textAlign: 'center' },
   quoteSign: { fontFamily: fonts.light, fontSize: 12, lineHeight: 17, color: c.muted, textAlign: 'center', marginTop: 10 },
+  supplement: { fontFamily: fonts.light, fontSize: 12, lineHeight: 22.2, color: c.muted, textAlign: 'center', marginTop: -16, marginBottom: 30 },
   moodTitle: { fontFamily: fonts.light, fontSize: 16, lineHeight: 24, color: c.ink, textAlign: 'center', marginBottom: 18 },
   moods: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 30 },
   moodCard: { alignItems: 'center', gap: 6, width: 76, minHeight: 93, paddingVertical: 12, paddingHorizontal: 10, borderWidth: 1, borderColor: c.line, borderRadius: 3, backgroundColor: c.paperDeep },

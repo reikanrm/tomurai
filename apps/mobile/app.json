@@ -5,7 +5,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "web": {"bundler": "metro", "name": "Tomurai · 開発プレビュー"},
+    "web": {"bundler": "metro", "name": "Tomurai"},
     "experiments": {"baseUrl": "/preview"}
   }
 }

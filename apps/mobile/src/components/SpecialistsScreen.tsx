@@ -49,8 +49,7 @@ export function SpecialistsScreen({ locale, onOpenMap, error }: {
       {expanded === category.id && <Text style={s.hint}>{category.hint[language]}</Text>}
     </View>)}
     {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
-    <Text style={s.footnote}>{t('相談内容や家族の情報は自動送信しません。現在地へのアクセスも行いません。', 'Your questions and family information are not automatically sent. This preview does not access your location.')}</Text>
-    <Text style={s.footnote}>{t('Tomurai提携パートナーの地図は準備中です。上のカードは相談分野で、提携事業者の一覧ではありません。', 'The Tomurai partner map is being prepared. These cards are search categories, not partner listings.')}</Text>
+    <Text style={s.footnote}>{t('相談内容や家族の情報は自動送信しません。現在地へのアクセスも行いません。', 'Your questions and family information are not automatically sent. Tomurai does not access your location.')}</Text>
   </View>;
 }
 

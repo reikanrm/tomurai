@@ -13,6 +13,7 @@ export function EnsoProgress({ completed, total, label, size = 116, appearance =
   completed: number; total: number; label: string; size?: number; appearance?: 'progress' | 'brand';
 }) {
   const value = progressValue(completed, total);
+  const logoSize = size * 0.5;
   const id = 'enso-' + useId().replace(/[^a-zA-Z0-9]/g, '');
   const animated = useRef(new Animated.Value(value.ratio)).current;
   const [shown, setShown] = useState(value.ratio);
@@ -44,7 +45,7 @@ export function EnsoProgress({ completed, total, label, size = 116, appearance =
   return <View style={styles.holder} accessible accessibilityRole={isBrand ? 'image' : 'progressbar'}
     accessibilityLabel={label}
     {...progressAccessibility}>
-    <Svg width={size} height={size} viewBox="0 0 200 200" accessible={false} aria-hidden>
+    <Svg width={logoSize} height={logoSize} viewBox="0 0 200 200" accessible={false} aria-hidden>
       <Defs><Mask id={id} x={0} y={0} width={200} height={200}
         maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" maskType="alpha" style={{ maskType: 'alpha' }}>
         <Image href={originalEnso} x={-280 * scale} y={-150 * scale}

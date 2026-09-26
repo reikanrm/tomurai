@@ -5,11 +5,11 @@ import { isValidPastDate } from '../domain/progress';
 import { colors as c, font, fonts } from '../theme';
 import { EnsoProgress } from './EnsoProgress';
 
-export function Onboarding({ locale, onConfirm }: {
-  locale: Locale; onConfirm: (answers: Record<string, string>) => void;
+export function Onboarding({ locale, onConfirm, initialAnswers = {} }: {
+  locale: Locale; onConfirm: (answers: Record<string, string>) => void; initialAnswers?: Record<string, string>;
 }) {
-  const [step, setStep] = useState(-1);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [step, setStep] = useState(Object.keys(initialAnswers).length ? questions.length : -1);
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
   const [error, setError] = useState('');
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
   const question = questions[step];
@@ -79,7 +79,7 @@ export function Onboarding({ locale, onConfirm }: {
         <Text style={s.primaryText}>{t('この内容で確定する', 'Confirm these answers')}</Text>
       </Pressable>
     </>}
-    <Text style={s.footnote}>{t('開発プレビュー：実際の個人情報は入力しないでください。\n入力はこの画面のメモリ内のみ。再読み込みで消えます。', 'Development preview: do not enter real personal information.\nEntries stay in memory and are cleared on reload.')}</Text>
+    <Text style={s.footnote}>{t('個人を特定する情報は入力しないでください。\n入力内容は、アプリを開き直すと消えます。', 'Do not enter identifying personal information.\nEntries are cleared when the app is reopened.')}</Text>
   </View>;
 }
 

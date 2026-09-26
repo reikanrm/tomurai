@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assigneeInitial, demoTasks, members } from '../apps/mobile/src/data/demo.ts';
+import { assigneeInitial, members } from '../apps/mobile/src/data/demo.ts';
+import { deriveGuidanceTasks } from '../apps/mobile/src/domain/guidance.ts';
+import { defaultPlan } from '../apps/mobile/src/domain/guidance-model.ts';
 
 test('synthetic family members retain stable, unique IDs', () => {
   assert.deepEqual(members.map(member => member.id), ['self', 'family-a', 'family-b']);
   assert.equal(new Set(members.map(member => member.id)).size, members.length);
-  for (const task of demoTasks) {
+  for (const task of deriveGuidanceTasks(defaultPlan)) {
     assert.ok(task.assignee === null || members.some(member => member.id === task.assignee));
   }
 });
