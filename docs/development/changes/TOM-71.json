@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "ticket": "TOM-71",
+  "requirements": [
+    "C06",
+    "R08",
+    "R12",
+    "R13",
+    "R19",
+    "R43",
+    "R46"
+  ],
+  "gates": [
+    "G02",
+    "G03",
+    "G04",
+    "G06"
+  ],
+  "allowedPaths": [
+    "docs/ssot/life-notes-product.md",
+    "docs/ssot/life-notes.md",
+    "docs/ssot/product-requirements.md",
+    "docs/ssot/authorization-and-entitlements.md",
+    "docs/ssot/access-preview.md",
+    "docs/ssot/screen-catalog.json",
+    "docs/adr/0015-life-notes-product-port.md",
+    "docs/development/evidence/TOM-71.md",
+    "docs/development/changes/TOM-71.json",
+    "apps/mobile/src/App.tsx",
+    "apps/mobile/src/components/DevelopmentMenu.tsx",
+    "apps/mobile/src/components/LifeNotesWorkspace.tsx",
+    "apps/mobile/src/domain/life-notes-service.ts",
+    "apps/mobile/src/domain/life-notes-port.ts",
+    "apps/mobile/src/development/life-notes.ts",
+    "apps/mobile/src/domain/access.ts",
+    "tests/life-notes-service.test.mjs",
+    "tests/life-notes-product-render.test.mjs",
+    "tests/access-integration.test.mjs",
+    "tests/life-delegation-rehearsal-render.test.mjs"
+  ],
+  "evidence": "docs/development/evidence/TOM-71.md",
+  "docs": {
+    "mode": "updated",
+    "reason": "利用者の明示要求で別練習から製品UI/サービスへ進め、法人ペルソナを追加。仕様/設計も先行更新。本番接続保留は維持。",
+    "paths": [
+      "docs/ssot/life-notes-product.md",
+      "docs/ssot/life-notes.md",
+      "docs/ssot/product-requirements.md",
+      "docs/ssot/authorization-and-entitlements.md",
+      "docs/ssot/access-preview.md",
+      "docs/ssot/screen-catalog.json",
+      "docs/adr/0015-life-notes-product-port.md"
+    ]
+  },
+  "testCommands": [
+    "node --test tests/life-notes-service.test.mjs tests/life-notes-product-render.test.mjs",
+    "npm test",
+    "npm run typecheck",
+    "npm run check",
+    "npm run build:web",
+    "npm run check:development -- --base 94d41c7273a562a2045abd71a602fbcf51237b60"
+  ]
+}

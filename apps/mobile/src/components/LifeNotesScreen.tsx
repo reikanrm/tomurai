@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Locale } from '../data/questions';
 import { lifeChapters } from '../data/life-notes';
 import { colors as c, fonts } from '../theme';
 
-export function LifeNotesScreen({locale, eligible, onBack}:{locale:Locale;eligible:boolean;onBack:()=>void}) {
+export function LifeNotesScreen({locale, eligible, onBack, rehearsal}:{locale:Locale;eligible:boolean;onBack:()=>void;rehearsal?:ReactNode}) {
   const [expanded,setExpanded] = useState<string|null>(null);
   const t=(ja:string,en:string)=>locale==='ja'?ja:en;
   return <View>
@@ -23,6 +23,7 @@ export function LifeNotesScreen({locale, eligible, onBack}:{locale:Locale;eligib
       <Text style={s.copy}>{t('初期状態は自分だけ。共有する項目と相手は、ご自身で選びます。勤務先には内容を共有しません。死亡の届け出だけでノートが公開されることはありません。','Private by default. You choose the items and recipients. Your employer cannot read the contents. A death report alone does not release your notes.')}</Text>
       <Pressable disabled accessibilityRole="button" accessibilityState={{disabled:true}} style={s.disabled}><Text style={s.copy}>{t('共有設定の準備中','Sharing settings pending')}</Text></Pressable>
     </>}
+    {rehearsal}
     <Pressable accessibilityRole="button" onPress={onBack} style={s.back}><Text style={s.link}>{t('ホームに戻る','Back to home')}</Text></Pressable>
   </View>;
 }

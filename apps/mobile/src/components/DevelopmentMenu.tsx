@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import type { AccessPreview } from '../domain/access';
+import type { CorporateScene } from '../development/life-notes';
 import type { Locale } from '../data/questions';
 import { colors as c, fonts } from '../theme';
 
 export type PreviewScreen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care' | 'guidance' | 'family' | 'notifications' | 'life-notes';
 
-export function DevelopmentButton({ locale, onPress }: { locale: Locale; onPress: () => void }) {
-  if (!__DEV__) return null;
+export function DevelopmentButton({ locale, onPress, enabled = __DEV__ }: { locale: Locale; onPress: () => void; enabled?: boolean }) {
+  if (!enabled) return null;
   return <Pressable accessibilityRole="button" accessibilityLabel={locale === 'ja' ? '開発用の権限・プラン設定' : 'Development permissions and plans'}
     onPress={onPress} style={s.entry}>
     <Svg width={21} height={21} viewBox="0 0 24 24" accessible={false} aria-hidden>
@@ -21,12 +22,13 @@ export function DevelopmentButton({ locale, onPress }: { locale: Locale; onPress
 }
 
 /** Development-only, ephemeral fixture controls; never an authorization source. */
-export function DevelopmentMenu({ locale, value, onApply, onClose }: {
-  locale: Locale; value: AccessPreview; onApply: (value: AccessPreview, screen?: PreviewScreen) => void; onClose: () => void;
+export function DevelopmentMenu({ locale, value, onApply, onClose, enabled = __DEV__ }: {
+  locale: Locale; value: AccessPreview; onApply: (value: AccessPreview, screen?: PreviewScreen, scene?: CorporateScene) => void; onClose: () => void; enabled?: boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const [destination, setDestination] = useState<PreviewScreen | undefined>();
-  if (!__DEV__) return null;
+  const [lifeScene, setLifeScene] = useState<CorporateScene>('current');
+  if (!enabled) return null;
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
   const update = (change: Partial<AccessPreview>) => setDraft(current => ({ ...current, ...change }));
   const choices = <T extends string | number | boolean,>(label: string, selected: T, options: Array<[T, string]>, change: (value: T) => void, preset = false) =>
@@ -49,9 +51,22 @@ export function DevelopmentMenu({ locale, value, onApply, onClose }: {
           ['payer', t('契約者＋回答担当', 'Payer + respondent')],
           ['family', t('招待された家族', 'Invited family')],
           ['pending', t('参加承認待ち', 'Awaiting approval')],
-        ], preset => update(preset === 'payer' ? { membership: 'active', canManageBilling: true, isRespondent: true }
-          : preset === 'family' ? { membership: 'active', canManageBilling: false, isRespondent: false, activeMemberCount: 2 }
-            : { membership: 'pending', canManageBilling: false, isRespondent: false }), true)}
+        ], preset => update(preset === 'payer' ? { membership: 'active', canManageBilling: true, isRespondent: true, corporatePersona: undefined, entitlement: 'free' }
+          : preset === 'family' ? { membership: 'active', canManageBilling: false, isRespondent: false, activeMemberCount: 2, corporatePersona: undefined, entitlement: 'free' }
+            : { membership: 'pending', canManageBilling: false, isRespondent: false, corporatePersona: undefined }), true)}
+        {choices(t('法人バージョン / ペルソナ', 'Corporate version / persona'), draft.corporatePersona ?? '', [
+          ['corporate-employee', t('法人・社員本人', 'Corporate · employee')],
+          ['corporate-family', t('法人・招待家族', 'Corporate · invited family')],
+          ['corporate-delegate', t('法人・代理入力担当', 'Corporate · delegate')],
+        ], persona => { update({ corporatePersona: persona as AccessPreview['corporatePersona'], entitlement: 'corporate', membership: 'active', canManageBilling: false, isRespondent: false, activeMemberCount: 2 });
+          setDestination(persona === 'corporate-employee' ? 'home' : 'life-notes'); })}
+        {draft.entitlement === 'corporate' && <>
+          {choices(t('生前ノートのシーン', 'Life-note scene'), lifeScene, [
+            ['current', t('現在の入力を保持', 'Keep current entries')], ['empty', t('未記入から', 'Empty notes')],
+            ['review', t('親の下書き確認待ち', 'Parent review pending')], ['expired', t('委任期限切れ', 'Delegation expired')],
+          ], scene => setLifeScene(scene as CorporateScene))}
+          <Text style={s.note}>{t('シーンを変更すると開発用ノートを初期化します。家族本人で項目を承認し、代理入力担当へ切り替えると同じ内容で操作を続けられます。', 'Changing the scene resets development notes. Approve items as the family owner, then switch to the delegate to continue with the same records.')}</Text>
+        </>}
         {choices(t('プラン', 'Plan'), draft.entitlement, [
           ['free', t('無料', 'Free')], ['beta', 'β'], ['b2c_solo', t('単独', 'Solo')],
           ['b2c_family', t('家族', 'Family')], ['corporate', t('法人支援', 'Corporate')], ['expired', t('失効', 'Expired')],
@@ -67,7 +82,7 @@ export function DevelopmentMenu({ locale, value, onApply, onClose }: {
           ['family', t('家族管理', 'Family')], ['notifications', t('お知らせ', 'Notifications')], ['life-notes', t('生前ノート', 'Life notes')],
         ], next => setDestination(next as PreviewScreen))}
       </ScrollView>
-      <View style={s.footer}><Pressable accessibilityRole="button" onPress={() => onApply(draft, destination)} style={s.apply}>
+      <View style={s.footer}><Pressable accessibilityRole="button" onPress={() => onApply(draft, destination, lifeScene)} style={s.apply}>
         <Text style={s.applyText}>{t('この設定で表示する', 'Apply to preview')}</Text></Pressable></View>
     </View></View>
   </Modal>;

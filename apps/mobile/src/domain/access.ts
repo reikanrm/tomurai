@@ -1,6 +1,7 @@
 import type { GuidanceTask } from './guidance-model';
 
 export type AccessPreview = {
+  corporatePersona?: 'corporate-employee' | 'corporate-family' | 'corporate-delegate';
   membership: 'active' | 'pending';
   canManageBilling: boolean;
   isRespondent: boolean;

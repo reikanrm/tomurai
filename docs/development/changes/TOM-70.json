@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "ticket": "TOM-70",
+  "requirements": [
+    "C06",
+    "R08",
+    "R13",
+    "R19",
+    "R43",
+    "R46"
+  ],
+  "gates": [
+    "G02",
+    "G03",
+    "G04",
+    "G06"
+  ],
+  "allowedPaths": [
+    "docs/ssot/life-delegation-rehearsal.md",
+    "docs/ssot/life-notes.md",
+    "docs/ssot/product-requirements.md",
+    "docs/ssot/authorization-and-entitlements.md",
+    "docs/ssot/screen-catalog.json",
+    "docs/adr/0014-life-delegation-rehearsal.md",
+    "docs/development/changes/TOM-70.json",
+    "docs/development/evidence/TOM-70.md",
+    "apps/mobile/src/App.tsx",
+    "apps/mobile/src/domain/life-delegation-rehearsal.ts",
+    "apps/mobile/src/components/LifeDelegationRehearsal.tsx",
+    "tests/life-delegation-rehearsal.test.mjs",
+    "tests/life-delegation-rehearsal-render.test.mjs",
+    "apps/mobile/src/components/LifeNotesScreen.tsx"
+  ],
+  "evidence": "docs/development/evidence/TOM-70.md",
+  "docs": {
+    "mode": "updated",
+    "reason": "仮データの代理入力一連操作を明示承認。通常認可と隔離した練習を実装し本番接続/公開は保留。別repo仕様書/設計書も先行更新。",
+    "paths": [
+      "docs/ssot/life-delegation-rehearsal.md",
+      "docs/ssot/life-notes.md",
+      "docs/ssot/product-requirements.md",
+      "docs/ssot/authorization-and-entitlements.md",
+      "docs/ssot/screen-catalog.json",
+      "docs/adr/0014-life-delegation-rehearsal.md"
+    ]
+  },
+  "testCommands": [
+    "node --test tests/life-delegation-rehearsal*.test.mjs",
+    "npm test",
+    "npm run typecheck",
+    "npm run check",
+    "npm run build:web",
+    "npm run check:development -- --base 94d41c7273a562a2045abd71a602fbcf51237b60"
+  ]
+}

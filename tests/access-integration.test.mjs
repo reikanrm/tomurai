@@ -9,11 +9,12 @@ const app = readFileSync('apps/mobile/src/App.tsx', 'utf8');
 const menu = readFileSync('apps/mobile/src/components/DevelopmentMenu.tsx', 'utf8');
 
 test('access wiring: development entry, menu and mutation are guarded, not enabled by a URL', () => {
-  assert.match(app, /resolveAccess\(previewAccess, __DEV__\)/);
-  assert.match(app, /\{__DEV__ && <DevelopmentButton/);
-  assert.match(app, /\{__DEV__ && developmentOpen && <DevelopmentMenu/);
-  assert.match(app, /const changePreview = [\s\S]*?if \(!__DEV__\) return;/);
-  assert.equal((menu.match(/if \(!__DEV__\) return null;/g) ?? []).length, 2);
+  assert.match(app, /developmentEnabled = __DEV__ \|\| process\.env\.EXPO_PUBLIC_DEVELOPMENT_MENU === 'true'/);
+  assert.match(app, /resolveAccess\(previewAccess, developmentEnabled\)/);
+  assert.match(app, /\{developmentEnabled && <DevelopmentButton enabled=\{developmentEnabled\}/);
+  assert.match(app, /\{developmentEnabled && developmentOpen && <DevelopmentMenu enabled=\{developmentEnabled\}/);
+  assert.match(app, /const changePreview = [\s\S]*?if \(!developmentEnabled\) return;/);
+  assert.equal((menu.match(/if \(!enabled\) return null;/g) ?? []).length, 2);
   const queryFields = [...app.matchAll(/query\.get\('([^']+)'\)/g)].map(match => match[1]);
   assert.deepEqual(queryFields, ['screen', 'lang']);
   assert.doesNotMatch(menu, /AsyncStorage|localStorage|SecureStore|Linking|fetch\(/);
@@ -63,7 +64,7 @@ test('PO integration keeps new flows unconnected without inventing identity, rec
   assert.match(app, /<ConsultationSheet[\s\S]*?registered=\{false\}/);
   assert.match(app, /<NotificationButton[^>]+sourceState="unavailable"/);
   assert.match(app, /<NotificationScreen[^>]+sourceState="unavailable"/);
-  assert.match(app, /lifePreviewEligible = __DEV__ && activeMember && access\.entitlement === 'corporate'/);
+  assert.match(app, /lifePreviewEligible = developmentEnabled && activeMember && access\.entitlement === 'corporate'/);
   assert.match(app, /isInvitationEntry\(url\)/);
   const change = app.slice(app.indexOf('const changePreview ='), app.indexOf('const renderTask ='));
   assert.match(change, /setSelectedPartnerId\(null\)/);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { AppState, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,9 @@ import { NotificationButton, NotificationScreen } from './components/Notificatio
 import { MunicipalGuidancePanel } from './components/MunicipalGuidancePanel';
 import { FamilyScreen } from './components/FamilyScreen';
 import { LifeNotesScreen } from './components/LifeNotesScreen';
+import { LifeNotesWorkspace } from './components/LifeNotesWorkspace';
+import { createDevelopmentLifeNotes, type CorporateScene } from './development/life-notes';
+import { unavailableLifeNotes } from './domain/life-notes-port';
 import { markNotificationRead, type NotificationItem } from './domain/notifications';
 import { completionMessage, emptyCompletionSession } from './domain/completion-message';
 import { DevelopmentButton, DevelopmentMenu } from './components/DevelopmentMenu';
@@ -71,6 +74,8 @@ function Tomurai() {
   const [today, setToday] = useState(todayInJapan);
   const [answerNotice, setAnswerNotice] = useState(false);
   const [previewAccess, setPreviewAccess] = useState<AccessPreview>(defaultAccess);
+  const developmentEnabled = __DEV__ || process.env.EXPO_PUBLIC_DEVELOPMENT_MENU === 'true';
+  const [lifeDevelopment] = useState(() => developmentEnabled ? createDevelopmentLifeNotes() : null);
   const [developmentOpen, setDevelopmentOpen] = useState(false);
   const [previewRevision, setPreviewRevision] = useState(0);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
@@ -78,10 +83,12 @@ function Tomurai() {
   const [invitationRehearsal, setInvitationRehearsal] = useState<InvitationRehearsalState | null>(null);
   const rehearsalEnabled = __DEV__ || process.env.EXPO_PUBLIC_INVITATION_REHEARSAL === 'true';
   const [freeTaskIds, setFreeTaskIds] = useState<readonly string[] | null>(null);
-  const access = resolveAccess(previewAccess, __DEV__);
+  const access = resolveAccess(previewAccess, developmentEnabled);
   const canAnswer = canEditAnswers(access);
   const activeMember = access.membership === 'active';
-  const lifePreviewEligible = __DEV__ && activeMember && access.entitlement === 'corporate';
+  const lifePreviewEligible = developmentEnabled && activeMember && access.entitlement === 'corporate';
+  const lifePort = useMemo(() => lifePreviewEligible && lifeDevelopment ? lifeDevelopment.port(access.corporatePersona ?? 'corporate-employee') : unavailableLifeNotes,
+    [lifePreviewEligible, lifeDevelopment, access.corporatePersona, previewRevision]);
   const tasks = applyTaskProgress([...deriveGuidanceTasks(plan, ritualWork), ...deriveGeneralConfirmationTasks(answers)], progress).sort((a, b) =>
     (a.scheduledDate ?? a.guidanceDate ?? '9999').localeCompare(b.scheduledDate ?? b.guidanceDate ?? '9999') || a.id.localeCompare(b.id));
   const taskAccess = selectTaskAccess(tasks, access, freeTaskIds ?? freezeFreeTaskIds(tasks, null));
@@ -178,8 +185,9 @@ function Tomurai() {
   const lockedTasks = taskAccess.hasLocked && action ? <LockedTasks locale={locale} action={action} onPress={() => setAccessSheetOpen(true)} /> : null;
   const restrictedScreen = (!activeMember && ['home', 'tasks'].includes(screen)) || (!canAnswer && ['onboarding', 'guidance'].includes(screen));
   const navigate = (next: Screen) => { setStartupVisible(false); setSelectedId(null); setSelectedPartnerId(null); setAccessSheetOpen(false); setFamilyPlanOffer(false); setScreen(next); };
-  const changePreview = (next: AccessPreview, destination?: Screen) => {
-    if (!__DEV__) return;
+  const changePreview = (next: AccessPreview, destination?: Screen, scene: CorporateScene = 'current') => {
+    if (!developmentEnabled) return;
+    lifeDevelopment?.scene(scene);
     setSelectedId(null); setAssignee(null); setPause(false); setAccessSheetOpen(false);
     setSelectedPartnerId(null);
     setCompletionVisible(false);
@@ -211,7 +219,7 @@ function Tomurai() {
       <StartupEntrance animate={startupAnimated}>
       <ModalBackground hidden={!!selected || !!selectedPartner || pause || developmentOpen || accessSheetOpen}>
       <View style={s.header}><Text style={s.brand}>と む ら い</Text>
-        {__DEV__ && <DevelopmentButton locale={locale} onPress={() => setDevelopmentOpen(true)} />}
+        {developmentEnabled && <DevelopmentButton enabled={developmentEnabled} locale={locale} onPress={() => setDevelopmentOpen(true)} />}
         {screen !== 'onboarding' && <NotificationButton locale={locale} sourceState="unavailable" unread={notifications.filter(item => item.ownerId === 'self' && !item.read).length} onPress={() => navigate('notifications')} />}
         <Pressable accessibilityRole="button" accessibilityLabel={locale === 'ja' ? 'Switch to English' : '日本語に切り替える'}
           onPress={() => setLocale(locale === 'ja' ? 'en' : 'ja')} style={s.language}>
@@ -237,7 +245,8 @@ function Tomurai() {
           setScreen('home');
         }} />}
         {screen === 'guidance' && canAnswer && <GuidanceSettings key={previewRevision} locale={locale} plan={plan} onApply={next => { if (canAnswer) { applyPlan(next); setScreen('tasks'); } }} onClose={() => setScreen('home')} />}
-        {screen === 'home' && activeMember && <>
+        {screen === 'home' && lifePreviewEligible && <LifeNotesWorkspace key={previewRevision} locale={locale} port={lifePort} home onOpenNotes={() => navigate('life-notes')} onBack={() => navigate('tasks')} />}
+        {screen === 'home' && activeMember && !lifePreviewEligible && <>
           <EnsoProgress completed={doneCount} total={applicableCount} label={taskAccess.fullAccess ? t('完了', 'completed') : t('閲覧できるタスクの完了', 'available tasks completed')} />
           <Text accessibilityRole="header" style={s.greeting}>{t('今日は、ご自身のペースで。', 'At your own pace, today.')}</Text>
           <Text style={s.centerCopy}>{t('進められることから、ひとつずつ。\n必要なことを、家族と分けながら。', 'One thing at a time.\nShare what needs to be done with your family.')}</Text>
@@ -293,7 +302,8 @@ function Tomurai() {
             onEnd={() => setInvitationRehearsal(null)}
             onReviewPlan={() => { setFamilyPlanOffer(true); setAccessSheetOpen(true); }} /> : undefined}
           onReviewPlan={() => { setFamilyPlanOffer(true); setAccessSheetOpen(true); }} />}
-        {screen === 'life-notes' && <LifeNotesScreen locale={locale} eligible={lifePreviewEligible} onBack={() => navigate('home')} />}
+        {screen === 'life-notes' && (lifePreviewEligible ? <LifeNotesWorkspace key={previewRevision} locale={locale} port={lifePort} onOpenNotes={() => navigate('life-notes')} onBack={() => navigate('home')} />
+          : <LifeNotesScreen locale={locale} eligible={false} onBack={() => navigate('home')} />)}
         {screen === 'care' && <>
           <CareScreen locale={locale} onPause={() => setPause(true)} onFindSupport={() => externalMap('グリーフケア カウンセリング')} />
           {linkError ? <Text accessibilityRole="alert" style={s.error}>{linkError}</Text> : null}
@@ -315,7 +325,7 @@ function Tomurai() {
       </StartupEntrance>
       {selectedPartner && <ConsultationSheet partner={selectedPartner} locale={locale} today={today}
         registered={false} entitled={taskAccess.fullAccess} onClose={() => setSelectedPartnerId(null)} />}
-      {__DEV__ && developmentOpen && <DevelopmentMenu locale={locale} value={access} onApply={changePreview} onClose={() => setDevelopmentOpen(false)} />}
+      {developmentEnabled && developmentOpen && <DevelopmentMenu enabled={developmentEnabled} locale={locale} value={access} onApply={changePreview} onClose={() => setDevelopmentOpen(false)} />}
       {action && <AccessSheet visible={accessSheetOpen} locale={locale} action={action} activeMemberCount={familyPlanOffer ? Math.max(2, access.activeMemberCount) : access.activeMemberCount} onClose={() => { setAccessSheetOpen(false); setFamilyPlanOffer(false); }} />}
       <Modal visible={!!selected} transparent animationType="none" accessibilityLabel={selected?.title[locale]}
         onRequestClose={() => setSelectedId(null)}>
