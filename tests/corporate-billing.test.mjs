@@ -52,6 +52,24 @@ test('annual quote uses whole-company band and twelve monthly units, with no def
   }
 });
 
+test('invalid annual contract dates cannot create a case or charge through a null yearEnd match', () => {
+  for (const startsOn of [null,undefined,'','2026-01-99','2026-02-30','2026-1-1',0,{},[], '9999-01-01']) {
+    for(const endsBefore of [null,undefined,'','bad','2027-01-01']) {
+      const ctx=context();
+      ctx.contract.annualBase={...base(),startsOn,endsBefore};
+      const result=startCorporateCase(emptyCorporateState,request(),ctx);
+      assert.equal(result.status,'denied',`${String(startsOn)} / ${String(endsBefore)}`);
+      assert.equal(result.charge,null);
+      assert.equal(result.state,emptyCorporateState);
+    }
+  }
+  for(const endsBefore of [null,undefined,'','2027-02-30','2026-12-31',0,{},[]]) {
+    const ctx=context();ctx.contract.annualBase.endsBefore=endsBefore;
+    const result=startCorporateCase(emptyCorporateState,request(),ctx);
+    assert.equal(result.status,'denied');assert.equal(result.charge,null);assert.equal(result.state,emptyCorporateState);
+  }
+});
+
 test('first final consent creates one corporate case and only a corporation-charge proposal', () => {
   const result = startCorporateCase(emptyCorporateState, request(), context());
   assert.equal(result.status, 'started', 'eligible final consent should produce a start candidate');

@@ -12,6 +12,40 @@ function fixture() {
   const command=async(actor,type,extra={})=>{const field=db.note.fields.find(f=>f.id===extra.fieldId);return service.execute(actor,{noteId:'note',expectedRevision:db.note.revision,operationId:`op-${++seq}`,type,confirmedRevision:field?.confirmedRevision,draftRevision:field?.draft?.revision??0,...(type==='revoke'?{grantId:db.note.delegation?.id}:{}),...extra});};
   return {read,command,service,db:()=>db, setTime:ms=>{clock=ms;}, time:()=>clock,person:(id,patch)=>{const p=db.people.find(p=>p.userId===id);Object.assign(p,patch);},grant:()=>command('parent','delegate',{operatorId:'employee',fieldIds:['future-try']})};
 }
+test('malformed authentication and account flags never return private values or accept writes',async()=>{
+  for (const key of ['authenticated','accountActive']) {
+    for (const value of [false,undefined,null,'false','true',0,1,{},[]]) {
+      const f=fixture();
+      await f.command('parent','save',{fieldId:'future-try',text:'合成の非公開本文'});
+      f.person('parent',{[key]:value});
+      const before=structuredClone(f.db());
+      await assert.rejects(f.read('parent'),/forbidden/,`${key}=${String(value)} read`);
+      await assert.rejects(f.command('parent','save',{fieldId:'future-try',text:'上書き不可'}),/forbidden/);
+      assert.deepEqual(f.db(),before);
+    }
+  }
+});
+
+test('only boolean true permits owner save, delegation and draft confirmation; reading remains allowed',async()=>{
+  for (const value of [false,undefined,null,'false','true',0,1,{},[]]) {
+    for (const type of ['save','delegate','confirm']) {
+      const f=fixture();
+      if(type==='confirm') {
+        await f.grant();
+        await f.command('employee','draft',{fieldId:'future-try',text:'合成の提案',grantId:f.db().note.delegation.id});
+      }
+      f.db().ownerCanApprove=value;
+      const before=structuredClone(f.db());
+      const view=await f.read('parent');
+      assert.equal(view.canEdit,false);
+      await assert.rejects(f.command('parent',type,type==='delegate'
+        ? {operatorId:'employee',fieldIds:['future-try']}
+        : {fieldId:'future-try',text:'合成の編集'}),/forbidden/,`${type}: ${String(value)}`);
+      assert.deepEqual(f.db(),before);
+    }
+  }
+});
+
 test('owner text, scoped delegation, employee draft and reviewed confirmation use actual values',async()=>{
   const f=fixture(); await f.command('parent','save',{fieldId:'future-try',text:'合成の希望'});await f.grant();
   await f.command('employee','draft',{fieldId:'future-try',text:'合成の下書き',grantId:f.db().note.delegation.id});

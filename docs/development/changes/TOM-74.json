@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-74",
+  "requirements": ["C06", "C11", "C12", "C15", "C19", "R08", "R25", "R32", "R37", "R43"],
+  "gates": ["G01", "G02", "G03", "G04", "G05", "G06"],
+  "allowedPaths": ["docs/ssot/po-review-audit-2026-09-27.md", "docs/ssot/life-notes-product.md", "docs/ssot/corporate-pricing.md", "docs/ssot/product-requirements.md", "docs/adr/0011-corporate-pricing-domain.md", "docs/adr/0015-life-notes-product-port.md", "docs/development/changes/TOM-74.json", "docs/development/evidence/TOM-74.md", "apps/mobile/src/domain/life-notes-service.ts", "apps/mobile/src/domain/corporate-billing.ts", "tests/life-notes-service.test.mjs", "tests/corporate-billing.test.mjs"],
+  "evidence": "docs/development/evidence/TOM-74.md",
+  "docs": {"mode":"updated", "reason":"PO6要件の原文照合と未接続境界を明示し、既定の不正入力拒否をSSOT・既存ADR・読者仕様/設計へ先行追補する", "paths":["docs/ssot/po-review-audit-2026-09-27.md", "docs/ssot/life-notes-product.md", "docs/ssot/corporate-pricing.md", "docs/adr/0011-corporate-pricing-domain.md", "docs/adr/0015-life-notes-product-port.md"]},
+  "testCommands": ["node --test tests/life-notes-service.test.mjs tests/corporate-billing.test.mjs", "node --test tests/guidance.test.mjs tests/guidance-state.test.mjs tests/questionnaire.test.mjs tests/milestones.test.mjs tests/completion-message.test.mjs tests/municipal-guidance.test.mjs tests/notifications.test.mjs tests/notification-components.test.mjs", "npm test", "npm run typecheck", "npm run check", "npm run check:development -- --base ca8b151b683e8736684895a7fb5ec9f7f3b72ba2", "node node_modules/expo/bin/cli export --platform web --clear (cwd apps/mobile, absolute CLI, docs buildEnvironment)"]
+}

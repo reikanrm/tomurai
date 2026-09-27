@@ -98,9 +98,11 @@ const intent = (request: CaseIntent): CaseIntent => Object.freeze({
   consentId: request.consentId, startsOn: request.startsOn, termsVersion: request.termsVersion,
 });
 function validAnnualBase(quote: AnnualBaseQuote): boolean {
+  if (!quote || !date(quote.startsOn) || !date(quote.endsBefore)) return false;
+  const expectedEnd = yearEnd(quote.startsOn);
   return !!quote && identifier(quote.version) && positiveInteger(quote.employeeCount) && positiveInteger(quote.monthlyUnitYen)
     && positiveInteger(quote.annualYen) && quote.annualYen === quote.employeeCount * quote.monthlyUnitYen * 12
-    && quote.endsBefore === yearEnd(quote.startsOn) && quote.currency === 'JPY' && tax(quote.taxTreatment)
+    && expectedEnd !== null && quote.endsBefore === expectedEnd && quote.currency === 'JPY' && tax(quote.taxTreatment)
     && quote.billing === 'annual-prepaid';
 }
 

@@ -37,13 +37,13 @@ function reconcile(state: LifeTransaction, now: number) {
 }
 function access(state: LifeTransaction, actorId: string, noteId: string, now: number) {
   const actor = person(state, actorId), note = state.note;
-  if (note.id !== noteId || !actor?.authenticated || !actor.accountActive || actor.actorKind !== 'person') fail('forbidden');
+  if (note.id !== noteId || actor?.authenticated !== true || actor.accountActive !== true || actor.actorKind !== 'person') fail('forbidden');
   const owner = note.ownerId === actorId;
   const grant = note.delegation;
   const delegated = !!grant && grant.status === 'active' && grant.operatorId === actorId && now >= grant.approvedAt && now < grant.expiresAt
     && staff(state, actorId) && eligible(state, note.ownerId);
   if (!owner && !delegated) fail('forbidden');
-  return { owner, editable: owner && eligible(state, actorId) && state.ownerCanApprove, delegated };
+  return { owner, editable: owner && eligible(state, actorId) && state.ownerCanApprove === true, delegated };
 }
 function projection(state: LifeTransaction, actorId: string, now: number): LifeProjection {
   const a = access(state, actorId, state.note.id, now), note = state.note;
