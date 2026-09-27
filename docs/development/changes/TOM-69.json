@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-69",
+  "requirements": ["R19", "R41", "R44", "R46", "R48"],
+  "gates": ["G06"],
+  "allowedPaths": ["docs/ssot/docs-preview.md", "docs/adr/0001-repositories-and-ssot.md", "docs/development/changes/TOM-69.json", "docs/development/evidence/TOM-69.md"],
+  "evidence": "docs/development/evidence/TOM-69.md",
+  "docs": {"mode": "updated", "reason": "既存Vercelの資料配信修復を明示承認。固定版ビルドと限定配信をSSOT/ADR、別repoの仕様設計へ先行記録。", "paths": ["docs/ssot/docs-preview.md", "docs/adr/0001-repositories-and-ssot.md"]},
+  "testCommands": ["npm test", "npm run check", "npm run check:development -- --base ee2ecd16678083f3cddbae53fb7682146f0fc526"]
+}
