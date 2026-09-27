@@ -99,3 +99,10 @@ test('back works and changing to pending hides previously opened sections', () =
   button(pending, '←　ホームへ戻る').props.onPress();
   assert.equal(back, 1);
 });
+
+test('explicit rehearsal replaces unavailable controls only for active members', () => {
+  const render = harness();
+  assert.ok(text(render(props('ja', { rehearsal: 'Synthetic rehearsal' }))).includes('Synthetic rehearsal'));
+  const pending = render(props('ja', { rehearsal: 'Synthetic rehearsal', access: { ...access, membership: 'pending' } }));
+  assert.equal(text(pending).includes('Synthetic rehearsal'), false);
+});

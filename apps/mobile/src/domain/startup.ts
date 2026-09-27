@@ -1,5 +1,6 @@
 export const STARTUP_DELAY_MS = 3_000;
 export const STARTUP_FADE_MS = 280;
+export const STARTUP_ENTRANCE_MS = 320;
 
 export type StartupConditions = {
   active: boolean;
@@ -11,7 +12,7 @@ type StartupPorts = {
   now: () => number;
   schedule: (callback: () => void, delayMs: number) => () => void;
   fade: (onFinished: () => void) => () => void;
-  onComplete: () => void;
+  onComplete: (animated: boolean) => void;
 };
 
 // Owns only this mount's lifecycle. The caller decides whether a new onboarding
@@ -24,6 +25,8 @@ export function createStartupSequence(ports: StartupPorts) {
   let generation = 0;
   let finished = false;
   let disposed = false;
+  let manual = false;
+  let fading = false;
 
   function pause() {
     // Invalidate callbacks before cancellation: native animation cancellation can
@@ -33,20 +36,21 @@ export function createStartupSequence(ports: StartupPorts) {
     startedAt = null;
     const cancel = cancelPending;
     cancelPending = null;
+    fading = false;
     cancel?.();
   }
 
-  function complete() {
+  function complete(animated = false) {
     if (disposed || finished) return;
     finished = true;
     pause();
-    ports.onComplete();
+    ports.onComplete(animated);
   }
 
   function resume() {
-    if (disposed || finished || !conditions.active || conditions.screenReader !== false) return;
+    if (disposed || finished || !conditions.active || (!manual && conditions.screenReader !== false)) return;
     const current = generation;
-    if (remaining > 0) {
+    if (remaining > 0 && !manual) {
       startedAt = ports.now();
       cancelPending = ports.schedule(() => {
         if (disposed || finished || current !== generation) return;
@@ -57,8 +61,9 @@ export function createStartupSequence(ports: StartupPorts) {
     }
     // Unknown motion preferences fail safe: no animation, not an assumed opt-in.
     if (conditions.reduceMotion !== false) { complete(); return; }
+    fading = true;
     const cancel = ports.fade(() => {
-      if (!disposed && !finished && current === generation) complete();
+      if (!disposed && !finished && current === generation) complete(true);
     });
     if (!disposed && !finished && current === generation) cancelPending = cancel;
     else cancel();
@@ -74,7 +79,10 @@ export function createStartupSequence(ports: StartupPorts) {
     },
     continue() {
       // Explicit interaction works even when accessibility detection fails.
-      if (conditions.active) complete();
+      if (disposed || finished || !conditions.active || fading) return;
+      manual = true;
+      pause();
+      resume();
     },
     dispose() {
       if (disposed) return;

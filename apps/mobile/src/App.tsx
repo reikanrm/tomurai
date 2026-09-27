@@ -15,6 +15,9 @@ import { InheritanceNotice } from './components/InheritanceNotice';
 import { MilestoneSection } from './components/MilestoneSection';
 import { CompletionMessage } from './components/CompletionMessage';
 import { StartupIntro } from './components/StartupIntro';
+import { StartupEntrance } from './components/StartupEntrance';
+import { InvitationRehearsal } from './components/InvitationRehearsal';
+import { beginRehearsal, rehearsalCommand, type InvitationRehearsalState } from './domain/invitation-rehearsal';
 import { NotificationButton, NotificationScreen } from './components/NotificationScreen';
 import { MunicipalGuidancePanel } from './components/MunicipalGuidancePanel';
 import { FamilyScreen } from './components/FamilyScreen';
@@ -55,7 +58,8 @@ function Tomurai() {
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [startupReady, setStartupReady] = useState(false);
   const [startupVisible, setStartupVisible] = useState(true);
-  const finishStartup = useCallback(() => setStartupVisible(false), []);
+  const [startupAnimated, setStartupAnimated] = useState(false);
+  const finishStartup = useCallback((animated: boolean) => { setStartupAnimated(animated); setStartupVisible(false); }, []);
   const [locale, setLocale] = useState<Locale>('ja');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [plan, setPlan] = useState<GuidancePlan>(defaultPlan);
@@ -71,6 +75,8 @@ function Tomurai() {
   const [previewRevision, setPreviewRevision] = useState(0);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
   const [familyPlanOffer, setFamilyPlanOffer] = useState(false);
+  const [invitationRehearsal, setInvitationRehearsal] = useState<InvitationRehearsalState | null>(null);
+  const rehearsalEnabled = __DEV__ || process.env.EXPO_PUBLIC_INVITATION_REHEARSAL === 'true';
   const [freeTaskIds, setFreeTaskIds] = useState<readonly string[] | null>(null);
   const access = resolveAccess(previewAccess, __DEV__);
   const canAnswer = canEditAnswers(access);
@@ -178,6 +184,7 @@ function Tomurai() {
     setSelectedPartnerId(null);
     setCompletionVisible(false);
     setFamilyPlanOffer(false);
+    setInvitationRehearsal(null);
     setPreviewAccess(next); setDevelopmentOpen(false); setFilter('all');
     setPreviewRevision(current => current + 1);
     const target = destination ?? (['onboarding', 'guidance'].includes(screen) ? 'home' : screen);
@@ -201,6 +208,7 @@ function Tomurai() {
   </View></SafeAreaView>;
   return <SafeAreaView style={s.safe}>
     <View style={s.frame}>
+      <StartupEntrance animate={startupAnimated}>
       <ModalBackground hidden={!!selected || !!selectedPartner || pause || developmentOpen || accessSheetOpen}>
       <View style={s.header}><Text style={s.brand}>と む ら い</Text>
         {__DEV__ && <DevelopmentButton locale={locale} onPress={() => setDevelopmentOpen(true)} />}
@@ -277,6 +285,13 @@ function Tomurai() {
           onRead={id => setNotifications(current => current.map(item => item.id === id ? markNotificationRead(item, 'self') ?? item : item))}
           onBack={() => navigate('home')} />}
         {screen === 'family' && <FamilyScreen locale={locale} access={access} onBack={() => navigate('home')}
+          rehearsal={rehearsalEnabled && activeMember ? <InvitationRehearsal
+            key={`${previewRevision}:${invitationRehearsal?.invitation?.id ?? 'start'}:${!!invitationRehearsal}`}
+            locale={locale} session={invitationRehearsal} initialPlan={access.entitlement}
+            onStart={entitlement => setInvitationRehearsal(beginRehearsal({ ...access, entitlement }))}
+            onCommand={command => setInvitationRehearsal(current => current ? rehearsalCommand(current, command, Date.now()) : null)}
+            onEnd={() => setInvitationRehearsal(null)}
+            onReviewPlan={() => { setFamilyPlanOffer(true); setAccessSheetOpen(true); }} /> : undefined}
           onReviewPlan={() => { setFamilyPlanOffer(true); setAccessSheetOpen(true); }} />}
         {screen === 'life-notes' && <LifeNotesScreen locale={locale} eligible={lifePreviewEligible} onBack={() => navigate('home')} />}
         {screen === 'care' && <>
@@ -297,6 +312,7 @@ function Tomurai() {
         </Pressable>)}
       </View>}
       </ModalBackground>
+      </StartupEntrance>
       {selectedPartner && <ConsultationSheet partner={selectedPartner} locale={locale} today={today}
         registered={false} entitled={taskAccess.fullAccess} onClose={() => setSelectedPartnerId(null)} />}
       {__DEV__ && developmentOpen && <DevelopmentMenu locale={locale} value={access} onApply={changePreview} onClose={() => setDevelopmentOpen(false)} />}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-61",
+  "requirements": ["C05", "R02", "R03", "R11", "R43"],
+  "gates": ["G02", "G04", "G06"],
+  "allowedPaths": ["apps/mobile/package.json", "apps/mobile/src/App.tsx", "apps/mobile/src/domain/invitation-rehearsal.ts", "apps/mobile/src/components/InvitationRehearsal.tsx", "apps/mobile/src/components/FamilyScreen.tsx", "tests/invitation-rehearsal.test.mjs", "tests/invitation-rehearsal-render.test.mjs", "tests/invitations-render.test.mjs", "docs/ssot/screen-catalog.json", "docs/development/changes/TOM-61.json", "docs/development/evidence/TOM-61.md"],
+  "evidence": "docs/development/evidence/TOM-61.md",
+  "docs": {"mode": "updated", "reason": "追加SSOT・ADRは同時TOM-52契約で管理。通常ビルドと練習の分離を画面catalogへ反映。別repo仕様設計も先行更新。", "paths": ["docs/ssot/screen-catalog.json"]},
+  "testCommands": ["node --test tests/invitation*.test.mjs", "npm test", "npm run typecheck", "npm run check", "npm run build:web", "npm run check:development -- --base c94d17287c26c8d7aea1a0d806e5d63d8ba4567d"]
+}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-52",
+  "requirements": ["C01", "R19", "R41"],
+  "gates": ["G06"],
+  "allowedPaths": ["apps/mobile/src/App.tsx", "apps/mobile/src/domain/startup.ts", "apps/mobile/src/components/StartupIntro.tsx", "apps/mobile/src/components/StartupEntrance.tsx", "tests/startup.test.mjs", "tests/startup-entrance.test.mjs", "docs/ssot/product-requirements.md", "docs/ssot/po-review-implementation.md", "docs/ssot/startup-and-invitation-rehearsal.md", "docs/ssot/screen-catalog.json", "docs/adr/0010-delegated-po-review-implementation.md", "docs/development/changes/TOM-52.json", "docs/development/evidence/TOM-52.md"],
+  "evidence": "docs/development/evidence/TOM-52.md",
+  "docs": {"mode": "updated", "reason": "手動遷移・入口演出の受入条件を明確化。別repo仕様設計も先行更新。", "paths": ["docs/ssot/startup-and-invitation-rehearsal.md", "docs/adr/0010-delegated-po-review-implementation.md"]},
+  "testCommands": ["node --test tests/startup*.test.mjs", "npm test", "npm run typecheck", "npm run check", "npm run build:web", "npm run check:development -- --base c94d17287c26c8d7aea1a0d806e5d63d8ba4567d"]
+}

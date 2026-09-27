@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Locale } from '../data/questions';
 import type { AccessPreview } from '../domain/access';
 import { colors as c, font, fonts } from '../theme';
 
-/** Local presentation only. AccessPreview cannot authorize invitation commands.
- * No connected API means no link/secret, member list, receipt or success state. */
-export function FamilyScreen({ locale, access, onBack, onReviewPlan }: {
+/** Unconnected presentation. AccessPreview is never real authorization.
+ * An explicitly enabled rehearsal may replace the unavailable controls. */
+export function FamilyScreen({ locale, access, onBack, onReviewPlan, rehearsal }: {
   locale: Locale; access: AccessPreview; onBack: () => void; onReviewPlan: () => void;
+  rehearsal?: ReactNode;
 }) {
   const [preparing, setPreparing] = useState(false);
   const [reviewing, setReviewing] = useState(false);
@@ -22,7 +23,7 @@ export function FamilyScreen({ locale, access, onBack, onReviewPlan }: {
       <Text accessibilityRole="header" style={s.sectionTitle}>{t('参加の承認をお待ちください', 'Please wait for participation approval')}</Text>
       <Text style={s.body}>{t('ログインと合言葉の確認後、既存のご家族1名の承認が必要です。承認前は家族の情報を確認したり、ほかの方を招待したりできません。', 'After sign-in and passphrase verification, an existing family member must approve participation. Family information and invitation actions are unavailable before approval.')}</Text>
       <Text style={s.note}>{t('参加状態を確認する接続は準備中です。この画面で参加申請や承認は行われません。', 'The connection for checking participation is not available yet. This screen does not submit or approve participation.')}</Text>
-    </View> : <>
+    </View> : rehearsal ?? <>
       <View style={s.section}>
         <Text accessibilityRole="header" style={s.sectionTitle}>{t('ご家族を招待する', 'Invite a family member')}</Text>
         <Text style={s.body}>{t('招待リンクと合言葉を受け取った方が、ご自身のアカウントで参加を申請します。既存のご家族が相手を確認してから承認します。', 'The recipient uses the invitation link and passphrase to request participation with their own account. An existing family member checks the person before approving.')}</Text>

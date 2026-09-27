@@ -66,6 +66,7 @@ test('unknown or enabled screen reader never starts an automatic countdown', () 
     assert.equal(h.scheduled.length, 0);
     assert.equal(h.completions, 0);
     h.sequence.continue();
+    h.fades[0].callback();
     assert.equal(h.completions, 1);
   }
 });
@@ -123,6 +124,7 @@ test('enabling screen reader cancels countdown and fade without automatic comple
     for (const animation of h.fades) animation.callback();
     assert.equal(h.completions, 0);
     h.sequence.continue();
+    h.fades.at(-1).callback();
     assert.equal(h.completions, 1);
   }
 });
@@ -147,7 +149,7 @@ test('enabling reduced motion while fading cancels animation and completes once'
   assert.equal(h.completions, 1);
 });
 
-test('skip cancels pending work and remains single-shot', () => {
+test('manual continue cancels countdown and fades exactly once before completing', () => {
   const h = harness();
   h.sequence.update(active);
   h.sequence.continue();
@@ -155,8 +157,35 @@ test('skip cancels pending work and remains single-shot', () => {
   assert.equal(h.scheduled[0].cancelled, true);
   h.scheduled[0].callback();
   h.advance(10_000);
-  assert.equal(h.fades.length, 0);
+  assert.equal(h.fades.length, 1);
+  assert.equal(h.completions, 0);
+  h.fades[0].callback();
+  h.fades[0].callback();
   assert.equal(h.completions, 1);
+});
+
+test('manual fade pauses in background and reduced motion can finish it immediately', () => {
+  const h = harness();
+  h.sequence.update(active);
+  h.sequence.continue();
+  h.sequence.update({ ...active, active: false });
+  assert.equal(h.fades[0].cancelled, true);
+  h.fades[0].callback();
+  assert.equal(h.completions, 0);
+  h.sequence.update({ ...active, reduceMotion: true });
+  assert.equal(h.completions, 1);
+});
+
+test('manual completion reports whether entrance animation is safe', () => {
+  for (const conditions of [active, { ...active, reduceMotion: true }, { ...active, screenReader: null }]) {
+    const calls = [];
+    let finish;
+    const s = createStartupSequence({ now: () => 0, schedule: () => () => {}, fade: cb => { finish = cb; return () => {}; }, onComplete: animated => calls.push(animated) });
+    s.update(conditions);
+    s.continue();
+    finish?.();
+    assert.deepEqual(calls, [conditions.reduceMotion === false]);
+  }
 });
 
 test('unmount clears countdown or fade; late callbacks cannot invoke onComplete', () => {

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-25",
+  "requirements": ["R19", "R41", "R46", "R48"],
+  "gates": ["G06"],
+  "allowedPaths": ["docs/ssot/docs-preview.md", "docs/adr/0001-repositories-and-ssot.md", "docs/development/changes/TOM-25.json", "docs/development/evidence/TOM-25.md"],
+  "evidence": "docs/development/evidence/TOM-25.md",
+  "docs": {"mode": "updated", "reason": "docs側のiPhone風プレビュー契約を先行記録。別repoのUI差分は別途検証。", "paths": ["docs/ssot/docs-preview.md", "docs/adr/0001-repositories-and-ssot.md"]},
+  "testCommands": ["npm test", "npm run check", "npm run check:development -- --base c94d17287c26c8d7aea1a0d806e5d63d8ba4567d"]
+}

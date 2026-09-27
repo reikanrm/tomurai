@@ -5,7 +5,7 @@ import { createStartupSequence, STARTUP_FADE_MS, type StartupConditions } from '
 import { colors as c, font } from '../theme';
 import { EnsoProgress } from './EnsoProgress';
 
-export function StartupIntro({ locale, onComplete }: { locale: Locale; onComplete: () => void }) {
+export function StartupIntro({ locale, onComplete }: { locale: Locale; onComplete: (animated: boolean) => void }) {
   const opacity = useRef(new Animated.Value(1)).current;
   const sequenceRef = useRef<ReturnType<typeof createStartupSequence> | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -35,7 +35,7 @@ export function StartupIntro({ locale, onComplete }: { locale: Locale; onComplet
         animation.start(({ finished }) => { if (finished) { completed = true; onFinished(); } });
         return () => { animation.stop(); if (!completed) opacity.setValue(1); };
       },
-      onComplete: () => onCompleteRef.current(),
+      onComplete: animated => onCompleteRef.current(animated),
     });
     sequenceRef.current = sequence;
     sequence.update(conditions);

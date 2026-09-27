@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-62",
+  "requirements": ["C06", "R08", "R13", "R43"],
+  "gates": ["G02", "G03", "G04", "G06"],
+  "allowedPaths": ["docs/ssot/life-notes.md", "docs/ssot/product-requirements.md", "docs/ssot/authorization-and-entitlements.md", "docs/ssot/po-review-implementation.md", "docs/ssot/po-review-2026-09-26.md", "docs/ssot/screen-catalog.json", "docs/adr/0010-delegated-po-review-implementation.md", "docs/development/changes/TOM-62.json", "docs/development/evidence/TOM-62.md"],
+  "evidence": "docs/development/evidence/TOM-62.md",
+  "docs": {"mode": "updated", "reason": "第4問の明示回答を記録。未決の権限は補完せず業務コードを変更しない。", "paths": ["docs/ssot/life-notes.md", "docs/ssot/product-requirements.md", "docs/ssot/authorization-and-entitlements.md", "docs/ssot/po-review-implementation.md", "docs/ssot/po-review-2026-09-26.md", "docs/ssot/screen-catalog.json", "docs/adr/0010-delegated-po-review-implementation.md"]},
+  "testCommands": ["npm test", "npm run check", "npm run check:development -- --base c94d17287c26c8d7aea1a0d806e5d63d8ba4567d"]
+}
