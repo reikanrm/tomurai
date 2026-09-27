@@ -20,6 +20,7 @@ import { InvitationRehearsal } from './components/InvitationRehearsal';
 import { beginRehearsal, rehearsalCommand, type InvitationRehearsalState } from './domain/invitation-rehearsal';
 import { NotificationButton, NotificationScreen } from './components/NotificationScreen';
 import { MunicipalGuidancePanel } from './components/MunicipalGuidancePanel';
+import { emptyMunicipalJurisdiction, normalizeMunicipalJurisdiction, type MunicipalJurisdiction } from './domain/municipal-guidance';
 import { FamilyScreen } from './components/FamilyScreen';
 import { LifeNotesScreen } from './components/LifeNotesScreen';
 import { LifeNotesWorkspace } from './components/LifeNotesWorkspace';
@@ -106,6 +107,7 @@ function Tomurai() {
   const [completionVisible, setCompletionVisible] = useState(false);
   const closeCompletion = useCallback(() => setCompletionVisible(false), []);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [jurisdictions, setJurisdictions] = useState<Record<string, MunicipalJurisdiction>>({});
   const [linkError, setLinkError] = useState('');
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
   useEffect(() => {
@@ -193,6 +195,7 @@ function Tomurai() {
     setCompletionVisible(false);
     setFamilyPlanOffer(false);
     setInvitationRehearsal(null);
+    setJurisdictions({});
     setPreviewAccess(next); setDevelopmentOpen(false); setFilter('all');
     setPreviewRevision(current => current + 1);
     const target = destination ?? (['onboarding', 'guidance'].includes(screen) ? 'home' : screen);
@@ -237,6 +240,7 @@ function Tomurai() {
         {screen === 'onboarding' && canAnswer && <Onboarding key={previewRevision} locale={locale} initialAnswers={answers} initialPlan={plan} onConfirm={({ answers: next, plan: nextPlan }) => {
           if (!canAnswer) return;
           setAnswers(next);
+          setJurisdictions({});
           const invalidSchedule = !!(plan.fortyNineDate && !nextPlan.fortyNineDate && nextPlan.deathDate && plan.fortyNineDate < nextPlan.deathDate);
           setAnswerNotice(invalidSchedule);
           const nextTasks = [...deriveGuidanceTasks(nextPlan, recordRitualWork(plan, nextPlan, ritualWork)), ...deriveGeneralConfirmationTasks(next)];
@@ -339,7 +343,9 @@ function Tomurai() {
             {selected?.group === 'general' && <Text style={s.secondary}>{t('適用条件・提出先・期限は、手続き先へ確認してください。', 'Confirm eligibility, where to apply and deadlines with the relevant authority.')}</Text>}
             {selected && (['confirm-household-head', 'confirm-heirs', 'confirm-death-registration'].includes(selected.id)
               || (selected.id === 'confirm-health-insurance' && ['kokuho', 'koki'].includes(answers.kenpo ?? '')))
-              && <MunicipalGuidancePanel key={selected.id} locale={locale} taskId={selected.id} today={today} />}
+              && <MunicipalGuidancePanel key={selected.id} locale={locale} taskId={selected.id} today={today}
+                value={jurisdictions[selected.id] ?? emptyMunicipalJurisdiction}
+                onApply={value=>setJurisdictions(current=>({...current,[selected.id]:normalizeMunicipalJurisdiction(value)}))} />}
             {selected?.group === 'belongings' && inheritance('belongings')}
             {canAnswer && selected?.needsConfirmation && selected.group !== 'general' && <Pressable accessibilityRole="button" style={s.textButton} onPress={() => { setSelectedId(null); setScreen('guidance'); }}>
               <Text style={s.link}>{t('状況を確認・変更する', 'Review or change these choices')}</Text></Pressable>}

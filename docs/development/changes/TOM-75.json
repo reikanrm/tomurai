@@ -1,0 +1,7 @@
+{
+  "version":1,"ticket":"TOM-75","requirements":["C02","C14","R15","R16","R19","R46"],"gates":["G03","G04","G06"],
+  "allowedPaths":["docs/ssot/municipal-jurisdiction.md","docs/adr/0010-delegated-po-review-implementation.md","docs/development/changes/TOM-75.json","docs/development/evidence/TOM-75.md","apps/mobile/src/domain/municipal-guidance.ts","apps/mobile/src/components/MunicipalGuidancePanel.tsx","apps/mobile/src/App.tsx","tests/municipal-guidance.test.mjs","tests/municipal-panel.test.mjs"],
+  "evidence":"docs/development/evidence/TOM-75.md",
+  "docs":{"mode":"updated","reason":"手続きごとの保持と区選択をSSOT/既存ADR/読者仕様書・設計書へ先行追記。権限や監修条件は変えない","paths":["docs/ssot/municipal-jurisdiction.md","docs/adr/0010-delegated-po-review-implementation.md"]},
+  "testCommands":["node --test tests/municipal-guidance.test.mjs tests/municipal-panel.test.mjs","npm test","npm run typecheck","npm run check","npm run build:web","npm run check:development -- --base ca8b151b683e8736684895a7fb5ec9f7f3b72ba2"]
+}
