@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-76",
+  "requirements": ["C06", "C15", "R08", "R43"],
+  "gates": ["G01", "G02", "G03", "G04", "G05", "G06"],
+  "allowedPaths": ["docs/development/claude-code-grill-handoff-2026-09-27.md", "docs/development/claude-code-grill-prompt.md", "docs/development/changes/TOM-76.json", "docs/development/evidence/TOM-76.md"],
+  "evidence": "docs/development/evidence/TOM-76.md",
+  "docs": {"mode": "not-required", "reason": "引継ぎ索引と開始プロンプトだけ。新しい仕様決定や実装変更はなくSSOT/ADR/読者仕様書の内容を変更しない。最新資料へ参照をつなぐ。", "paths": []},
+  "testCommands": ["npm test", "npm run check", "npm run check:development -- --base 5f5800c2301bc6221b561624ef10b562b69decf9", "git diff --check"]
+}
