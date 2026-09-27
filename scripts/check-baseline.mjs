@@ -17,7 +17,7 @@ export function validateSpec(source) {
     if (!r02.includes(required)) errors.push('R02: missing ' + required);
   }
   const c04 = source.split(/\r?\n/).find(line => line.startsWith('| C04 |')) ?? '';
-  for (const required of ['1人利用980円/月', '2人以上1,480円/月', '税込', '9,408円／14,208円']) {
+  for (const required of ['1人利用980円/月', '2人以上1,480円/月', '税込', '年払い15%', '9,996円／15,096円', 'b2c-2026-09-26-v2']) {
     if (!c04.includes(required)) errors.push('C04: missing ' + required);
   }
   const acceptance = source.split('## 7. 絶対に削らない受入試験')[1]?.split('## 8.')[0] ?? '';

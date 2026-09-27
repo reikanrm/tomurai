@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { AppState, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -7,9 +7,20 @@ import { Onboarding } from './components/Onboarding';
 import { ModalBackground } from './components/ModalBackground';
 import { CareScreen } from './components/CareScreen';
 import { SpecialistsScreen } from './components/SpecialistsScreen';
+import { ConsultationSheet } from './components/ConsultationSheet';
+import { registeredPartners } from './domain/partners';
+import { isInvitationEntry } from './domain/entry-link';
 import { GuidanceSettings } from './components/GuidanceSettings';
 import { InheritanceNotice } from './components/InheritanceNotice';
 import { MilestoneSection } from './components/MilestoneSection';
+import { CompletionMessage } from './components/CompletionMessage';
+import { StartupIntro } from './components/StartupIntro';
+import { NotificationButton, NotificationScreen } from './components/NotificationScreen';
+import { MunicipalGuidancePanel } from './components/MunicipalGuidancePanel';
+import { FamilyScreen } from './components/FamilyScreen';
+import { LifeNotesScreen } from './components/LifeNotesScreen';
+import { markNotificationRead, type NotificationItem } from './domain/notifications';
+import { completionMessage, emptyCompletionSession } from './domain/completion-message';
 import { DevelopmentButton, DevelopmentMenu } from './components/DevelopmentMenu';
 import { AccessSheet, LockedTasks } from './components/AccessGate';
 import { defaultAccess, resolveAccess, canEditAnswers, freezeFreeTaskIds, selectTaskAccess, lockAction, type AccessPreview } from './domain/access';
@@ -26,8 +37,8 @@ import type { Locale } from './data/questions';
 import { colors as c, font, fonts } from './theme';
 import { taskRowMetrics as row } from './domain/task-row-layout';
 
-type Screen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care' | 'guidance';
-const screens: Screen[] = ['onboarding', 'home', 'tasks', 'specialists', 'care', 'guidance'];
+type Screen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care' | 'guidance' | 'notifications' | 'family' | 'life-notes';
+const screens: Screen[] = ['onboarding', 'home', 'tasks', 'specialists', 'care', 'guidance', 'notifications', 'family', 'life-notes'];
 type Filter = 'all' | 'mine' | 'open' | 'done';
 
 export default function App() {
@@ -41,6 +52,9 @@ export default function App() {
 }
 function Tomurai() {
   const [screen, setScreen] = useState<Screen>('onboarding');
+  const [startupReady, setStartupReady] = useState(false);
+  const [startupVisible, setStartupVisible] = useState(true);
+  const finishStartup = useCallback(() => setStartupVisible(false), []);
   const [locale, setLocale] = useState<Locale>('ja');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [plan, setPlan] = useState<GuidancePlan>(defaultPlan);
@@ -55,10 +69,12 @@ function Tomurai() {
   const [developmentOpen, setDevelopmentOpen] = useState(false);
   const [previewRevision, setPreviewRevision] = useState(0);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const [familyPlanOffer, setFamilyPlanOffer] = useState(false);
   const [freeTaskIds, setFreeTaskIds] = useState<readonly string[] | null>(null);
   const access = resolveAccess(previewAccess, __DEV__);
   const canAnswer = canEditAnswers(access);
   const activeMember = access.membership === 'active';
+  const lifePreviewEligible = __DEV__ && activeMember && access.entitlement === 'corporate';
   const tasks = applyTaskProgress([...deriveGuidanceTasks(plan, ritualWork), ...deriveGeneralConfirmationTasks(answers)], progress).sort((a, b) =>
     (a.scheduledDate ?? a.guidanceDate ?? '9999').localeCompare(b.scheduledDate ?? b.guidanceDate ?? '9999') || a.id.localeCompare(b.id));
   const taskAccess = selectTaskAccess(tasks, access, freeTaskIds ?? freezeFreeTaskIds(tasks, null));
@@ -66,8 +82,16 @@ function Tomurai() {
   const action = lockAction(access);
   const [filter, setFilter] = useState<Filter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  // Resolve from the current registry, not a captured copy of a withdrawn listing.
+  const matchingPartners = registeredPartners.filter(partner => partner.id === selectedPartnerId);
+  const selectedPartner = matchingPartners.length === 1 ? matchingPartners[0] : undefined;
   const [assignee, setAssignee] = useState<string | null>(null);
   const [pause, setPause] = useState(false);
+  const completionSession = useRef(emptyCompletionSession());
+  const [completionVisible, setCompletionVisible] = useState(false);
+  const closeCompletion = useCallback(() => setCompletionVisible(false), []);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [linkError, setLinkError] = useState('');
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
   useEffect(() => {
@@ -86,13 +110,21 @@ function Tomurai() {
     });
   }, [allTasksDone, today]);
   useEffect(() => {
+    let mounted = true;
     Linking.getInitialURL().then(url => {
-      if (!url) return;
+      if (!mounted || !url) return;
       const query = new URL(url).searchParams;
       const initial = query.get('screen');
-      if (initial && screens.includes(initial as Screen)) setScreen(initial as Screen);
+      if (initial && screens.includes(initial as Screen)) {
+        setScreen(initial as Screen);
+        if (initial !== 'onboarding') setStartupVisible(false);
+      } else if (isInvitationEntry(url)) {
+        setStartupVisible(false);
+        setScreen('family');
+      }
       if (query.get('lang') === 'en') setLocale('en');
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => { if (mounted) setStartupReady(true); });
+    return () => { mounted = false; };
   }, []);
   const selected = visibleTasks.find(task => task.id === selectedId);
   const doneCount = visibleTasks.filter(task => task.done).length;
@@ -115,6 +147,12 @@ function Tomurai() {
     if (change.notNeeded !== undefined && (!selected.optional || selected.completionKey)) return;
     if (selected.completionKey && change.done !== undefined) applyPlan(planWithCompletion(plan, selected.completionKey, change.done, burialBeforeCompletion));
     setProgress(current => ({ ...current, [selected.id]: { ...current[selected.id], ...change } }));
+    if (change.done === true && !selected.done) {
+      const message = completionMessage(completionSession.current, { taskId: selected.id, actor: 'self', succeeded: true,
+        wasDone: selected.done, done: true, notNeeded: selected.notNeeded }, Math.random);
+      completionSession.current = message.state;
+      if (message.show) setCompletionVisible(true);
+    }
   };
   const externalMap = async (query: string) => {
     setLinkError('');
@@ -132,10 +170,13 @@ function Tomurai() {
     onFindSupport={() => { setSelectedId(null); void externalMap('相続 弁護士'); }} />;
   const lockedTasks = taskAccess.hasLocked && action ? <LockedTasks locale={locale} action={action} onPress={() => setAccessSheetOpen(true)} /> : null;
   const restrictedScreen = (!activeMember && ['home', 'tasks'].includes(screen)) || (!canAnswer && ['onboarding', 'guidance'].includes(screen));
-  const navigate = (next: Screen) => { setSelectedId(null); setAccessSheetOpen(false); setScreen(next); };
+  const navigate = (next: Screen) => { setStartupVisible(false); setSelectedId(null); setSelectedPartnerId(null); setAccessSheetOpen(false); setFamilyPlanOffer(false); setScreen(next); };
   const changePreview = (next: AccessPreview, destination?: Screen) => {
     if (!__DEV__) return;
     setSelectedId(null); setAssignee(null); setPause(false); setAccessSheetOpen(false);
+    setSelectedPartnerId(null);
+    setCompletionVisible(false);
+    setFamilyPlanOffer(false);
     setPreviewAccess(next); setDevelopmentOpen(false); setFilter('all');
     setPreviewRevision(current => current + 1);
     const target = destination ?? (['onboarding', 'guidance'].includes(screen) ? 'home' : screen);
@@ -153,11 +194,16 @@ function Tomurai() {
     </View>}
   </Pressable>;
 
+  if (!startupReady) return <SafeAreaView style={s.safe}><View style={s.frame} /></SafeAreaView>;
+  if (startupVisible && screen === 'onboarding') return <SafeAreaView style={s.safe}><View style={s.frame}>
+    <StartupIntro locale={locale} onComplete={finishStartup} />
+  </View></SafeAreaView>;
   return <SafeAreaView style={s.safe}>
     <View style={s.frame}>
-      <ModalBackground hidden={!!selected || pause || developmentOpen || accessSheetOpen}>
+      <ModalBackground hidden={!!selected || !!selectedPartner || pause || developmentOpen || accessSheetOpen}>
       <View style={s.header}><Text style={s.brand}>と む ら い</Text>
         {__DEV__ && <DevelopmentButton locale={locale} onPress={() => setDevelopmentOpen(true)} />}
+        {screen !== 'onboarding' && <NotificationButton locale={locale} sourceState="unavailable" unread={notifications.filter(item => item.ownerId === 'self' && !item.read).length} onPress={() => navigate('notifications')} />}
         <Pressable accessibilityRole="button" accessibilityLabel={locale === 'ja' ? 'Switch to English' : '日本語に切り替える'}
           onPress={() => setLocale(locale === 'ja' ? 'en' : 'ja')} style={s.language}>
           <Text style={s.languageText}>{locale === 'ja' ? 'EN' : '日本語'}</Text></Pressable>
@@ -186,8 +232,8 @@ function Tomurai() {
           <EnsoProgress completed={doneCount} total={applicableCount} label={taskAccess.fullAccess ? t('完了', 'completed') : t('閲覧できるタスクの完了', 'available tasks completed')} />
           <Text accessibilityRole="header" style={s.greeting}>{t('今日は、ご自身のペースで。', 'At your own pace, today.')}</Text>
           <Text style={s.centerCopy}>{t('進められることから、ひとつずつ。\n必要なことを、家族と分けながら。', 'One thing at a time.\nShare what needs to be done with your family.')}</Text>
-          <MilestoneSection locale={locale} context={{ today, plan, eventDates, allTasksDone: taskAccess.fullAccess && allTasksDone, dismissed }}
-            onDismiss={id => setDismissed(current => [...new Set([...current, id])])} />
+          <Pressable accessibilityRole="button" style={s.secondaryButton} onPress={() => navigate('family')}><Text style={s.link}>{t('家族を招待・管理する', 'Invite & manage family')}</Text></Pressable>
+          {lifePreviewEligible && <Pressable accessibilityRole="button" style={s.secondaryButton} onPress={() => navigate('life-notes')}><Text style={s.link}>{t('法人向け · わたしのノート', 'Corporate benefit · My notes')}</Text></Pressable>}
           {plan.rituals === 'unknown' && <Text style={s.secondary}>{t('法要やご供養の状況に合わせて、表示することを選べます。', 'Choose guidance to match your family’s plans.')}</Text>}
           {planLink}
           {answerNotice && <Text accessibilityRole="alert" style={s.secondary}>{t('死亡日の変更に伴い、それより前の法要予定日を未定に戻しました。予定を確認してください。', 'The service date preceded the corrected date of death and has been cleared. Please check your plans.')}</Text>}
@@ -196,6 +242,8 @@ function Tomurai() {
           {visibleTasks.filter(task => !task.done && !task.notNeeded).slice(0, 3).map(renderTask)}
           {lockedTasks}
           {visibleTasks.length > 0 && doneCount === applicableCount && <Text style={s.empty}>{t('表示中の対象タスクに、未完了のものはありません。', 'There are no open applicable tasks in this list.')}</Text>}
+          <MilestoneSection locale={locale} context={{ today, plan, eventDates, allTasksDone: taskAccess.fullAccess && allTasksDone, dismissed }}
+            onDismiss={id => setDismissed(current => [...new Set([...current, id])])} />
           <Pressable accessibilityRole="button" style={s.warmCard} onPress={() => setPause(true)}>
             <Text style={s.leaf}>◌</Text><View style={{ flex: 1 }}><Text style={s.warmTitle}>{t('少し、間（ま）を置く', 'Take a little space')}</Text>
               <Text style={s.secondary}>{t('手続きから離れる時間も。', 'A moment away from the tasks.')}</Text></View><Text style={s.chevron}>›</Text>
@@ -222,13 +270,22 @@ function Tomurai() {
           {inheritance()}
           <Text style={s.footnote}>{t('アプリで完了にしても、提出・申請などの手続き自体が完了するわけではありません。', 'Marking a task done does not submit or complete the actual procedure.')}</Text>
         </>}
-        {screen === 'specialists' && <SpecialistsScreen locale={locale} onOpenMap={externalMap} error={linkError} />}
+        {screen === 'specialists' && <SpecialistsScreen locale={locale} today={today} onOpenMap={externalMap} error={linkError}
+          onConsult={partner => setSelectedPartnerId(partner.id)} />}
+        {screen === 'notifications' && <NotificationScreen locale={locale} sourceState="unavailable" userId="self" items={notifications}
+          onRead={id => setNotifications(current => current.map(item => item.id === id ? markNotificationRead(item, 'self') ?? item : item))}
+          onBack={() => navigate('home')} />}
+        {screen === 'family' && <FamilyScreen locale={locale} access={access} onBack={() => navigate('home')}
+          onReviewPlan={() => { setFamilyPlanOffer(true); setAccessSheetOpen(true); }} />}
+        {screen === 'life-notes' && <LifeNotesScreen locale={locale} eligible={lifePreviewEligible} onBack={() => navigate('home')} />}
         {screen === 'care' && <>
           <CareScreen locale={locale} onPause={() => setPause(true)} onFindSupport={() => externalMap('グリーフケア カウンセリング')} />
           {linkError ? <Text accessibilityRole="alert" style={s.error}>{linkError}</Text> : null}
         </>}
         {(screen === 'home' || screen === 'tasks' || screen === 'guidance') && linkError ? <Text accessibilityRole="alert" style={s.error}>{linkError}</Text> : null}
       </ScrollView>
+      {completionVisible && activeMember && <CompletionMessage locale={locale} onClose={closeCompletion}
+        onDisable={() => { completionSession.current = { ...completionSession.current, disabled: true }; closeCompletion(); }} />}
       {screen !== 'onboarding' && <View style={s.nav} accessibilityRole="tablist">
         {(['home', 'tasks', 'specialists', 'care'] as Screen[]).map((value, i) => <Pressable key={value}
           accessibilityRole="tab" accessibilityState={{ selected: screen === value }} aria-selected={screen === value} onPress={() => navigate(value)} style={s.navButton}>
@@ -237,8 +294,10 @@ function Tomurai() {
         </Pressable>)}
       </View>}
       </ModalBackground>
+      {selectedPartner && <ConsultationSheet partner={selectedPartner} locale={locale} today={today}
+        registered={false} entitled={taskAccess.fullAccess} onClose={() => setSelectedPartnerId(null)} />}
       {__DEV__ && developmentOpen && <DevelopmentMenu locale={locale} value={access} onApply={changePreview} onClose={() => setDevelopmentOpen(false)} />}
-      {action && <AccessSheet visible={accessSheetOpen} locale={locale} action={action} activeMemberCount={access.activeMemberCount} onClose={() => setAccessSheetOpen(false)} />}
+      {action && <AccessSheet visible={accessSheetOpen} locale={locale} action={action} activeMemberCount={familyPlanOffer ? Math.max(2, access.activeMemberCount) : access.activeMemberCount} onClose={() => { setAccessSheetOpen(false); setFamilyPlanOffer(false); }} />}
       <Modal visible={!!selected} transparent animationType="none" accessibilityLabel={selected?.title[locale]}
         onRequestClose={() => setSelectedId(null)}>
         <View style={s.modalBackdrop}><View style={s.sheet} accessibilityViewIsModal>
@@ -249,6 +308,9 @@ function Tomurai() {
             {selected && <Text style={s.secondary}>{taskDate(selected)}{selected.guidanceDate && selected.scheduledDate ? t(`（目安：${selected.guidanceDate}）`, ` (guide: ${selected.guidanceDate})`) : ''}</Text>}
             {selected?.optional && <Text style={s.secondary}>{t('ご家庭の状況に合わせて選ぶ任意の候補です。', 'This is an optional suggestion to suit your family.')}</Text>}
             {selected?.group === 'general' && <Text style={s.secondary}>{t('適用条件・提出先・期限は、手続き先へ確認してください。', 'Confirm eligibility, where to apply and deadlines with the relevant authority.')}</Text>}
+            {selected && (['confirm-household-head', 'confirm-heirs', 'confirm-death-registration'].includes(selected.id)
+              || (selected.id === 'confirm-health-insurance' && ['kokuho', 'koki'].includes(answers.kenpo ?? '')))
+              && <MunicipalGuidancePanel key={selected.id} locale={locale} taskId={selected.id} today={today} />}
             {selected?.group === 'belongings' && inheritance('belongings')}
             {canAnswer && selected?.needsConfirmation && selected.group !== 'general' && <Pressable accessibilityRole="button" style={s.textButton} onPress={() => { setSelectedId(null); setScreen('guidance'); }}>
               <Text style={s.link}>{t('状況を確認・変更する', 'Review or change these choices')}</Text></Pressable>}

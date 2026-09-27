@@ -54,7 +54,20 @@ test('access wiring: changing preview closes task, pause and purchase state befo
   assert.match(change, /setPreviewRevision\(current => current \+ 1\)/);
   assert.match(app, /<Onboarding key=\{previewRevision\}/);
   assert.match(app, /<GuidanceSettings key=\{previewRevision\}/);
-  assert.match(app, /<ModalBackground hidden=\{!!selected \|\| pause \|\| developmentOpen \|\| accessSheetOpen\}/);
+  assert.match(app, /<ModalBackground hidden=\{!!selected \|\| !!selectedPartner \|\| pause \|\| developmentOpen \|\| accessSheetOpen\}/);
+});
+
+test('PO integration keeps new flows unconnected without inventing identity, receipt or inbox', () => {
+  assert.match(app, /registeredPartners\.filter\(partner => partner\.id === selectedPartnerId\)/);
+  assert.match(app, /selectedPartner = matchingPartners\.length === 1 \? matchingPartners\[0\] : undefined/);
+  assert.match(app, /<ConsultationSheet[\s\S]*?registered=\{false\}/);
+  assert.match(app, /<NotificationButton[^>]+sourceState="unavailable"/);
+  assert.match(app, /<NotificationScreen[^>]+sourceState="unavailable"/);
+  assert.match(app, /lifePreviewEligible = __DEV__ && activeMember && access\.entitlement === 'corporate'/);
+  assert.match(app, /isInvitationEntry\(url\)/);
+  const change = app.slice(app.indexOf('const changePreview ='), app.indexOf('const renderTask ='));
+  assert.match(change, /setSelectedPartnerId\(null\)/);
+  for (const route of ['family', 'notifications', 'life-notes']) assert.ok(menu.includes(`['${route}',`));
 });
 
 test('access wiring: preparation sheets cannot charge, send or grant access', () => {

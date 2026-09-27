@@ -6,6 +6,8 @@
 
 | 分類 | チケット | 目的 |
 |---|---|---|
+| E03契約 | [TOM-48](https://linear.app/aitane/issue/TOM-48) | サーバーコマンド・認可/競合/再送のテスト。永続化/実同期とは別 |
+| E07契約 | [TOM-49](https://linear.app/aitane/issue/TOM-49) | LINE通知の送信条件・再送契約。実配信とは別 |
 | E04補完 | [TOM-42](https://linear.app/aitane/issue/TOM-42) | 法要完了後の残作業保持・全完了誤判定修正 |
 | E03補完 | [TOM-43](https://linear.app/aitane/issue/TOM-43) | 条件付き初回質問・既存回答の抽出接続 |
 | E04保留 | [TOM-44](https://linear.app/aitane/issue/TOM-44) | 香典台帳。POモック待ち、今回実装保留 |
@@ -13,7 +15,7 @@
 | E03未接続 | [TOM-46](https://linear.app/aitane/issue/TOM-46) | 認可付き保存・再起動/家族同期。未着手 |
 | E07未接続 | [TOM-47](https://linear.app/aitane/issue/TOM-47) | 画面内確認と実通知配信の未接続解消。未着手 |
 | 既存 | [TOM-1](https://linear.app/aitane/issue/TOM-1) | 広告表示の公開前確認。E04/G04へ関連付け |
-| 既存 | [TOM-2](https://linear.app/aitane/issue/TOM-2) | POモック待ち。E08/G03へ関連付け |
+| 既存 | [TOM-2](https://linear.app/aitane/issue/TOM-2) | POモック受領、8章36項目の一覧・権利判定を実装。全フォーム/保存/共有は未完了 |
 | E01 | [TOM-3](https://linear.app/aitane/issue/TOM-3/e01-作業群仕様基準認可表契約状態遷移takt開発手順) | 【E01 作業群】仕様基準・認可表・契約状態遷移・TAKT開発手順 |
 | E02 | [TOM-4](https://linear.app/aitane/issue/TOM-4/e02-作業群react-native基盤認証日英api契約ci) | 【E02 作業群】React Native基盤・認証・日英・API契約・CI |
 | E03 | [TOM-5](https://linear.app/aitane/issue/TOM-5/e03-作業群質問確定絞り込み家族招待担当進捗の最初の一連動作) | 【E03 作業群】質問確定→絞り込み→家族招待→担当・進捗の最初の一連動作 |
@@ -56,6 +58,10 @@
 
 Eは作業群で、そのまま1回のTAKT入力にしない。着手時に子チケットへ分割する。
 Gは公開前に必要な実証・承認で、一括仕様承認だけではDoneにならない。
+
+TOM-13：見積り先行の進め方のみ承認。[インフラ・AI・LINE概算](infrastructure-cost-estimate-2026-09-26.md)を判断資料とし、月額上限・構成・実支出の承認と区別する。G01未達、インフラgrill中の実装保留を維持する。
+
+TOM-13最新回答：「高すぎます」。開発4万円案を採用せず、ローカル中心の開発費削減とβ希望予算を再検討中。旧概算は比較履歴。復旧要件の緩和は未承認。
 E09のセキュリティ/削除はE02から継続し、全機能の最後まで後回しにしない。
 
 最初の小タスクTOM-19はローカル仕様/定義整備。TOM-20はmock遷移検証と実プロバイダの実行条件確認。
@@ -63,5 +69,30 @@ TOM-2の項目/画面待ちが他の独立作業を止めないよう管理す�
 
 TOM-22〜25の成果物はレビューへ渡す。バックエンド・認証・同期・本番公開の完了とは区別する。
 各チケットに差分のcommit、実行コマンド/結果、未検証事項を残す。最新の状態はLinearで管理し、この索引には固定の進捗率を書かない。
+
+## POレビュー（2026-09-26）
+
+[TOM-50](https://linear.app/aitane/issue/TOM-50)が総括。全項目は[変更要求台帳](../ssot/po-review-2026-09-26.md)、委任後の判断は[実装契約](../ssot/po-review-implementation.md)。新規17票とTOM-2を進行へ更新し、ローカルの画面/ドメインを実装した。[統合検証記録](po-review-verification-2026-09-26.md)を参照。API/本番・監修・両OS実機の未完了を残し、一括Doneにはしない。
+
+| 票 | 対象 |
+| --- | --- |
+| [TOM-51](https://linear.app/aitane/issue/TOM-51) | Web基準/差分 |
+| [TOM-52](https://linear.app/aitane/issue/TOM-52) | 3秒導入/初回コピー |
+| [TOM-53](https://linear.app/aitane/issue/TOM-53) | 年払い15% |
+| [TOM-54](https://linear.app/aitane/issue/TOM-54) | 節目の表示位置 |
+| [TOM-55](https://linear.app/aitane/issue/TOM-55) | 完了のランダム表示 |
+| [TOM-56](https://linear.app/aitane/issue/TOM-56) | 自治体別モーダル/リンク |
+| [TOM-57](https://linear.app/aitane/issue/TOM-57) | パートナー/Maps |
+| [TOM-58](https://linear.app/aitane/issue/TOM-58) | 相談分岐/登録/同意 |
+| [TOM-59](https://linear.app/aitane/issue/TOM-59) | ケアのWebアイコン |
+| [TOM-60](https://linear.app/aitane/issue/TOM-60) | 進捗通知/通知アイコン |
+| [TOM-61](https://linear.app/aitane/issue/TOM-61) | 家族招待導線 |
+| [TOM-62](https://linear.app/aitane/issue/TOM-62) | 生前/死後連携（TOM-2依存） |
+| [TOM-63](https://linear.app/aitane/issue/TOM-63) | 社員数×月N円/ケース課金 |
+| [TOM-64](https://linear.app/aitane/issue/TOM-64) | 専門家権限 |
+| [TOM-65](https://linear.app/aitane/issue/TOM-65) | 相談受領（TOM-58依存） |
+| [TOM-66](https://linear.app/aitane/issue/TOM-66) | 専門家保存/削除/運用 |
+
+TOM-64〜66は[専門家ダッシュボードの別プロジェクト](https://linear.app/aitane/project/tomurai専門家ダッシュボード仕様策定-90e25e419922)。別リポジトリ/インフラの承認ではない。
 
 TOM-27/TOM-28の参照値と意図した差分は[POモックとの視覚対応](./po-visual-parity.md)。見た目の修正は認証・保存・外部送信・公開の追加承認を意味しない。

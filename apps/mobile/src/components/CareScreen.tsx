@@ -3,6 +3,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { careMoods, toggleCareMood, selfCareActions, toggleSelfCareAction, type CareMoodId, type SelfCareActionId } from '../data/care';
 import type { Locale } from '../data/questions';
 import { colors as c, fonts } from '../theme';
+import { CareActionIcon, type CareActionIconName } from './CareActionIcon';
+
+const selfCareIcons: Record<SelfCareActionId, CareActionIconName> = {
+  water: 'tea', rest: 'breath', connection: 'message',
+};
 
 type CareScreenProps = {
   locale: Locale;
@@ -51,6 +56,7 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: action === option.id }}
         aria-expanded={action === option.id} style={s.smallActionButton}
         onPress={() => setAction(current => toggleSelfCareAction(current, option.id))}>
+        <View style={s.actionIconBox}><CareActionIcon name={selfCareIcons[option.id]} /></View>
         <Text style={[s.actionTitle, { flex: 1 }]}>{option.title[locale]}</Text>
         <Text accessible={false} aria-hidden style={s.disclosure}>{action === option.id ? '−' : '＋'}</Text>
       </Pressable>
@@ -64,14 +70,14 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
     <Pressable accessibilityRole="button" onPress={onFindSupport}
       accessibilityLabel={t('グリーフカウンセラーに話す。Google Mapsで相談先を探す', 'Talk to a grief counsellor. Find support in Google Maps')}
       style={s.actionRow}>
-      <View style={s.actionIconBox}><Text accessible={false} aria-hidden style={s.actionIcon}>🕊</Text></View>
+      <View style={s.actionIconBox}><CareActionIcon name="message" /></View>
       <View style={s.actionCopy}>
         <Text style={s.actionTitle}>{t('グリーフカウンセラーに話す', 'Talk to a grief counsellor')}</Text>
         <Text style={s.actionSub}>{t('Google Mapsで相談先を探します', 'Find support in Google Maps')}</Text>
       </View>
     </Pressable>
     <Pressable accessibilityRole="button" onPress={onPause} style={[s.actionRow, s.lastAction]}>
-      <View style={s.actionIconBox}><Text accessible={false} aria-hidden style={s.actionIcon}>🌿</Text></View>
+      <View style={s.actionIconBox}><CareActionIcon name="breath" /></View>
       <View style={s.actionCopy}>
         <Text style={s.actionTitle}>{t('少し、間（ま）を置く', 'Take a little space')}</Text>
         <Text style={s.actionSub}>{t('手続きから離れて、ひと息つく時間を', 'A moment away from the tasks')}</Text>
@@ -83,6 +89,7 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
 // TOM-28: values transcribed from the public PO mobile mock, not the separate
 // desktop index.html. Normal line-height is matched to measured PO browser line
 // boxes; only the quote and page subheading have explicitly specified line-height.
+// TOM-59 changes only the action artwork/40px box to the Web care SVGs.
 // React Native/Web renderers can differ in glyph rasterization.
 const s = StyleSheet.create({
   eyebrow: { fontFamily: fonts.light, fontSize: 11, lineHeight: 16, letterSpacing: 1.76, color: c.muted, marginBottom: 8 },
@@ -104,8 +111,7 @@ const s = StyleSheet.create({
   sectionLabel: { fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 21, color: c.ink, marginTop: 34, marginBottom: 4, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: c.line },
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: c.line },
   lastAction: { borderBottomWidth: 0 },
-  actionIconBox: { width: 36, height: 36, borderRadius: 3, backgroundColor: c.warmPaper, alignItems: 'center', justifyContent: 'center' },
-  actionIcon: { fontFamily: fonts.light, fontSize: 16, lineHeight: 24 },
+  actionIconBox: { width: 40, height: 40, flexShrink: 0, borderRadius: 3, backgroundColor: c.warmPaper, alignItems: 'center', justifyContent: 'center' },
   actionCopy: { flex: 1 },
   actionTitle: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, color: c.ink, marginBottom: 2 },
   actionSub: { fontFamily: fonts.light, fontSize: 12, lineHeight: 17, color: c.muted },

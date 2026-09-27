@@ -1,31 +1,33 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Locale } from '../data/questions';
+import { todayInJapan } from '../domain/calendar';
+import { registeredPartners, selectPartners, type Partner, type PartnerField } from '../domain/partners';
 import { colors as c, fonts } from '../theme';
 
-// Same visual card anatomy as the PO mock. These are search categories, not
-// fabricated professionals, recommendations, partnerships or request forms.
+// Preserve the PO card anatomy; only approved, active registry entries appear.
 const categories = [
   { id: 'law', icon: '⚖️', role: ['相続・法律', 'INHERITANCE & LAW'], title: ['弁護士・司法書士', 'Lawyers & judicial scriveners'],
-    tag: ['相続の相談 / Google Maps', 'Inheritance support / Google Maps'], query: '弁護士 司法書士 相続',
+    tag: ['相続の相談', 'Inheritance support'], query: '弁護士 司法書士 相続',
     copy: ['相続に関する確認や手続きについて、相談先を探せます。', 'Find someone to discuss inheritance questions and procedures.'],
     hint: ['対応分野・相談料・受付方法は、各窓口に確認してください。', 'Check each office’s services, fees and booking arrangements.'] },
   { id: 'tax', icon: '🧾', role: ['税金のこと', 'TAX QUESTIONS'], title: ['税理士', 'Tax accountants'],
-    tag: ['相続税の相談 / Google Maps', 'Inheritance tax / Google Maps'], query: '税理士 相続',
+    tag: ['相続税の相談', 'Inheritance tax'], query: '税理士 相続',
     copy: ['税金についてわからないことがあるとき、相談先を探せます。', 'Find support for questions about tax.'],
     hint: ['申告の要否や個別の期限は、この画面では判断しません。専門家へご確認ください。', 'This screen does not determine filing obligations or individual deadlines. Ask a professional.'] },
   { id: 'care', icon: '🕊', role: ['こころのケア', 'GRIEF SUPPORT'], title: ['グリーフカウンセラー', 'Grief counsellors'],
-    tag: ['死別後の相談 / Google Maps', 'Bereavement support / Google Maps'], query: 'グリーフケア カウンセリング',
+    tag: ['死別後の相談', 'Bereavement support'], query: 'グリーフケア カウンセリング',
     copy: ['話したくなったときに、相談先を探せます。今すぐ決める必要はありません。', 'Find someone to talk to when you want. You do not need to decide now.'],
     hint: ['資格・対応言語・相談料などを、ご自身に合うか確認してください。', 'Check qualifications, languages and fees to find what suits you.'] },
   { id: 'belongings', icon: '📦', role: ['遺品整理', 'SORTING BELONGINGS'], title: ['遺品整理の相談先', 'Help with belongings'],
-    tag: ['片付け・整理 / Google Maps', 'Sorting & clearing / Google Maps'], query: '遺品整理',
+    tag: ['片付け・整理', 'Sorting & clearing'], query: '遺品整理',
     copy: ['片付けを進める前に、対応内容を確認できる窓口を探せます。', 'Find a service and check what it offers before arranging any work.'],
     hint: ['見積もり・作業内容を確認してください。相続放棄を検討する場合、売却・処分の前に専門家へ確認しましょう。', 'Check the quote and scope of work. If considering renunciation, seek professional advice before selling or disposing of property.'] },
-];
+] satisfies { id: PartnerField; icon: string; role: string[]; title: string[]; tag: string[]; query: string; copy: string[]; hint: string[] }[];
 
-export function SpecialistsScreen({ locale, onOpenMap, error }: {
+export function SpecialistsScreen({ locale, onOpenMap, error, partners = registeredPartners, region, today = todayInJapan(), onConsult }: {
   locale: Locale; onOpenMap: (query: string) => void; error: string;
+  partners?: readonly Partner[]; region?: string; today?: string; onConsult?: (partner: Partner) => void;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const language = locale === 'ja' ? 0 : 1;
@@ -33,22 +35,40 @@ export function SpecialistsScreen({ locale, onOpenMap, error }: {
   return <View>
     <Text style={s.eyebrow}>{t('専門家マッチング', 'PROFESSIONAL SUPPORT')}</Text>
     <Text accessibilityRole="header" style={s.title}>{t('専門家', 'Specialists')}</Text>
-    <Text style={s.subtitle}>{t('相談したい分野から、Google Mapsで相談先を探せます。', 'Choose a field to find support in Google Maps.')}</Text>
-    {categories.map(category => <View key={category.id} style={s.card}>
+    <Text style={s.subtitle}>{t('相談したい分野から、Tomurai提携パートナーを探せます。その他の相談先はGoogle Mapsで探せます。', 'Find Tomurai partners by field. You can also find other options in Google Maps.')}</Text>
+    <Text style={s.listingNote}>{t('名称順で表示しています。おすすめの順位ではありません。', 'Listings are in name order, not a recommendation ranking.')}</Text>
+    {!region && <Text style={s.listingNote}>{t('対応地域が未指定のため、全国対応が確認できた掲載先のみ表示します。', 'No region is selected. Only listings confirmed to serve all of Japan are shown.')}</Text>}
+    {categories.map(category => {
+      const listed = selectPartners(partners, { field: category.id, region, today, locale });
+      return <View key={category.id} style={s.card}>
       <View style={s.top}><View style={s.avatar}><Text accessible={false} aria-hidden style={s.icon}>{category.icon}</Text></View>
         <View style={{ flex: 1 }}><Text style={s.role}>{category.role[language]}</Text>
-          <Text style={s.name}>{category.title[language]}</Text><Text style={s.tag}>{category.tag[language]}</Text></View></View>
+          <Text accessibilityRole="header" style={s.name}>{category.title[language]}</Text><Text style={s.tag}>{category.tag[language]}</Text></View></View>
       <View style={s.match}><Text style={s.matchText}>{category.copy[language]}</Text></View>
+      <Text accessibilityRole="header" style={s.partnerHeading}>{t('Tomurai提携パートナー', 'Tomurai partners')}</Text>
+      {listed.length ? listed.map(partner => <View key={partner.id} style={s.partner}>
+        <Text style={s.name}>{partner.name[locale]}</Text>
+        <Pressable accessibilityRole="button" disabled={!onConsult} accessibilityState={{ disabled: !onConsult }}
+          accessibilityLabel={partner.name[locale] + t('に相談する', ', ask about a consultation')}
+          style={[s.button, !onConsult && s.disabled]} onPress={() => onConsult?.(partner)}>
+          <Text style={s.buttonText}>{t('相談する', 'Ask about a consultation')}</Text>
+        </Pressable>
+        {!onConsult && <Text style={s.listingNote}>{t('相談受付は準備中です。', 'Consultation requests are not available yet.')}</Text>}
+      </View>) : <Text style={s.empty}>{t('この分野の掲載パートナーは現在ありません。', 'No listed partners in this field at present.')}</Text>}
       <View style={s.actions}>
-        <Pressable accessibilityRole="link" accessibilityLabel={category.title[language] + t('、Google Mapsで探す', ', search Google Maps')}
-          style={s.button} onPress={() => onOpenMap(category.query)}><Text style={s.buttonText}>{t('近くで探す', 'Find nearby')}</Text></Pressable>
         <Pressable accessibilityRole="button" accessibilityState={{ expanded: expanded === category.id }} aria-expanded={expanded === category.id}
-          style={[s.button, s.ghost]} onPress={() => setExpanded(expanded === category.id ? null : category.id)}>
+          style={[s.button, s.ghost, { flex: 1 }]} onPress={() => setExpanded(expanded === category.id ? null : category.id)}>
           <Text style={[s.buttonText, s.ghostText]}>{t('相談の目安', 'Before contacting')}</Text></Pressable>
       </View>
       {expanded === category.id && <Text style={s.hint}>{category.hint[language]}</Text>}
-    </View>)}
+      <Pressable accessibilityRole="link" accessibilityLabel={category.title[language] + t('、その他で探す。Google Mapsを開きます', ', find other options in Google Maps')}
+        style={[s.button, s.ghost, s.mapButton]} onPress={() => onOpenMap(category.query)}>
+        <Text style={[s.buttonText, s.ghostText]}>{t('その他で探す', 'Find other options')}</Text>
+        <Text style={s.mapNote}>Google Maps ↗</Text>
+      </Pressable>
+    </View>; })}
     {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
+    <Text style={s.footnote}>{t('Tomurai提携パートナー：掲載事業者から掲載料を受け取り、ご紹介しています。', 'Tomurai partners: We receive listing fees from the businesses we introduce.')}</Text>
     <Text style={s.footnote}>{t('相談内容や家族の情報は自動送信しません。現在地へのアクセスも行いません。', 'Your questions and family information are not automatically sent. Tomurai does not access your location.')}</Text>
   </View>;
 }
@@ -66,10 +86,17 @@ const s = StyleSheet.create({
   tag: { fontFamily: fonts.light, fontSize: 11.5, lineHeight: 17, color: c.muted },
   match: { backgroundColor: c.paperDeep, borderLeftWidth: 3, borderLeftColor: c.greenSoft, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 14 },
   matchText: { fontFamily: fonts.light, fontSize: 12, lineHeight: 22.2, color: c.muted },
+  listingNote: { fontFamily: fonts.light, fontSize: 11.5, lineHeight: 21, color: c.muted, marginBottom: 14 },
+  partnerHeading: { fontFamily: fonts.medium, fontSize: 12.5, lineHeight: 20, color: c.ink, marginBottom: 12 },
+  partner: { borderTopWidth: 1, borderTopColor: c.line, paddingTop: 14, marginBottom: 14, gap: 10 },
+  empty: { fontFamily: fonts.light, fontSize: 12, lineHeight: 22, color: c.muted, marginBottom: 14 },
   actions: { flexDirection: 'row', gap: 8 },
-  button: { flex: 1, minHeight: 44, backgroundColor: c.green, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 44, backgroundColor: c.green, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   buttonText: { fontFamily: fonts.regular, color: c.white, fontSize: 12.5, lineHeight: 18, letterSpacing: .75, textAlign: 'center' },
   ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.line }, ghostText: { color: c.muted },
+  disabled: { backgroundColor: c.muted },
+  mapButton: { marginTop: 14 },
+  mapNote: { fontFamily: fonts.light, fontSize: 11, lineHeight: 17, color: c.muted, marginTop: 4 },
   hint: { fontFamily: fonts.light, fontSize: 12, lineHeight: 22.2, color: c.muted, marginTop: 14 },
   footnote: { fontFamily: fonts.light, fontSize: 11.5, lineHeight: 21, color: c.muted, marginTop: 14 },
   error: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 24, color: '#8C3824' },

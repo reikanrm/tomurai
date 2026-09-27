@@ -64,7 +64,6 @@ export function Onboarding({ locale, onConfirm, initialAnswers = {}, initialPlan
       label={position === 'intro' ? t('あとで確認も選べます', 'You can choose to check later') : t('質問への回答', 'questions answered')} size={132} />
     {position === 'intro' ? <>
       <Text style={s.eyebrow}>{t('はじめに', 'GETTING STARTED')}</Text>
-      <Text accessibilityRole="header" style={s.title}>{t('必要なことを、\nひとつずつ。', 'One thing\nat a time.')}</Text>
       <Text style={s.copy}>{t('いくつかの質問から、必要な手続きを整理します。\nわからないことは、あとで確認できます。\n質問数は回答に応じて変わります。', 'A few questions help organise what needs to be done.\nYou can check anything you are unsure about later.\nThe number of questions changes with your answers.')}</Text>
       <View style={s.note}><Text style={s.noteText}>{t('回答するのは、ご家族の代表1名です。\n最後に内容を確認してから確定します。', 'One designated family member answers.\nReview your answers before confirming.')}</Text></View>
       <Pressable accessibilityRole="button" style={s.primary} onPress={() => move(getNextQuestionId(answers, 'intro'))}>

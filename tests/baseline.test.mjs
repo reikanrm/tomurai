@@ -35,6 +35,14 @@ test('free additional members must not erase the second-member pricing tier', ()
   assert.ok(validateSpec(changed).some(e => e.startsWith('C04:')));
 });
 
+test('new-signup annual prices and discount must not revert to the v1 terms', () => {
+  for (const [current, old] of [['年払い15%', '年払い20%'], ['9,996円／15,096円', '9,408円／14,208円'], ['b2c-2026-09-26-v2', 'b2c-2026-09-26-v1']]) {
+    const changed = baseline.replace(/^\| C04 \|.*$/m, row => row.replace(current, old));
+    assert.notEqual(changed, baseline, `C04 must include ${current}`);
+    assert.ok(validateSpec(changed).some(error => error === `C04: missing ${current}`));
+  }
+});
+
 test('missing acceptance test fails validation', () => {
   const changed = baseline.replace(/^24\. .*$/m, '');
   assert.ok(validateSpec(changed).some(e => e.startsWith('Acceptance tests:')));

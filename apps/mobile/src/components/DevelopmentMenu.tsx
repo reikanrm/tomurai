@@ -5,7 +5,7 @@ import type { AccessPreview } from '../domain/access';
 import type { Locale } from '../data/questions';
 import { colors as c, fonts } from '../theme';
 
-export type PreviewScreen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care' | 'guidance';
+export type PreviewScreen = 'onboarding' | 'home' | 'tasks' | 'specialists' | 'care' | 'guidance' | 'family' | 'notifications' | 'life-notes';
 
 export function DevelopmentButton({ locale, onPress }: { locale: Locale; onPress: () => void }) {
   if (!__DEV__) return null;
@@ -64,6 +64,7 @@ export function DevelopmentMenu({ locale, value, onApply, onClose }: {
         {choices(t('開く画面（任意）', 'Open a screen (optional)'), destination ?? '', [
           ['tasks', t('タスク', 'Tasks')], ['home', t('ホーム', 'Home')], ['onboarding', t('質問', 'Questions')],
           ['guidance', t('法要の確認', 'Rituals')], ['care', t('心のケア', 'Self-care')], ['specialists', t('専門家', 'Support')],
+          ['family', t('家族管理', 'Family')], ['notifications', t('お知らせ', 'Notifications')], ['life-notes', t('生前ノート', 'Life notes')],
         ], next => setDestination(next as PreviewScreen))}
       </ScrollView>
       <View style={s.footer}><Pressable accessibilityRole="button" onPress={() => onApply(draft, destination)} style={s.apply}>

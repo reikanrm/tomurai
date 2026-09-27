@@ -31,6 +31,8 @@ function harness() {
     if (id === 'react-native') return native;
     if (id === '../data/care') return care;
     if (id === '../theme') return theme;
+    // Full SVG geometry/accessibility is exercised by care-icons.test.mjs.
+    if (id === './CareActionIcon') return { CareActionIcon: 'CareActionIcon' };
     throw Error(`Unexpected component import: ${id}`);
   } };
   vm.runInNewContext(compiled, context);

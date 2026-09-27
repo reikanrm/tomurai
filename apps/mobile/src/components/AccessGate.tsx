@@ -5,6 +5,7 @@ import Svg, { Defs, FeGaussianBlur, Filter, G, Line, Path, Rect, Text as SvgText
 import type { Locale } from '../data/questions';
 import { colors as c, font, fonts } from '../theme';
 import { taskRowMetrics as row, publicPreviewTitles, wrapPreviewTitle, rowHeightFromLines } from '../domain/task-row-layout';
+import { getNewSignupPrice } from '../domain/pricing';
 
 type Action = 'checkout' | 'request';
 type LockedTasksProps = { locale: Locale; action: Action; onPress: () => void };
@@ -84,8 +85,8 @@ export function AccessSheet({ visible, locale, action, activeMemberCount, onClos
   const [focused, setFocused] = useState('');
   const insets = useSafeAreaInsets();
   const t = (ja: string, en: string) => locale === 'ja' ? ja : en;
-  const family = activeMemberCount >= 2;
-  const amount = interval === 'year' ? (family ? '14,208' : '9,408') : (family ? '1,480' : '980');
+  const price = getNewSignupPrice(activeMemberCount, interval);
+  const family = price?.plan === 'family';
   const heading = action === 'checkout' ? t('ご利用プラン', 'Your plan') : t('契約者にリクエスト', 'Request access');
   useEffect(() => { setInterval('month'); setFocused(''); }, [visible, action, activeMemberCount]);
   const focusProps = (id: string) => ({ onFocus: () => setFocused(id), onBlur: () => setFocused('') });
@@ -105,7 +106,7 @@ export function AccessSheet({ visible, locale, action, activeMemberCount, onClos
         <ScrollView style={s.sheetScroll} contentContainerStyle={s.sheetContent}>
           {action === 'checkout' ? <>
             <Text style={s.copy}>{t('手続きを確認し、ご家族で分担するためのプランです。', 'A plan for reviewing and sharing the tasks ahead.')}</Text>
-            <View style={s.planCard}>
+            {price ? <View style={s.planCard}>
               <Text style={s.planName}>{family ? t('家族プラン', 'Family plan') : t('単独プラン', 'Solo plan')}</Text>
               <Text style={s.secondary}>{family
                 ? t('承認済みメンバーが2名以上のご家族', 'For families with two or more approved members')
@@ -114,15 +115,16 @@ export function AccessSheet({ visible, locale, action, activeMemberCount, onClos
                 accessibilityRole="radio" accessibilityState={{ checked: interval === value }} aria-checked={interval === value}
                 onPress={() => setInterval(value)} {...focusProps(value)}
                 style={({ pressed }) => [s.interval, interval === value && s.intervalSelected, pressed && s.pressed, focused === value && s.focus]}>
-                <Text style={[s.intervalText, interval === value && s.intervalTextSelected]}>{value === 'month' ? t('月払い', 'Monthly') : t('年払い · 20%OFF', 'Yearly · 20% off')}</Text>
+                <Text style={[s.intervalText, interval === value && s.intervalTextSelected]}>{value === 'month' ? t('月払い', 'Monthly') : t(`年払い · ${price.annualDiscountPercent}%OFF`, `Yearly · ${price.annualDiscountPercent}% off`)}</Text>
               </Pressable>)}</View>
-              <Text style={s.price} accessibilityLiveRegion="polite">¥{amount}<Text style={s.priceUnit}>{interval === 'month' ? t(' / 月', ' / month') : t(' / 年', ' / year')}</Text></Text>
+              <Text style={s.price} accessibilityLiveRegion="polite">¥{price.amount.toLocaleString(locale === 'ja' ? 'ja-JP' : 'en-US')}<Text style={s.priceUnit}>{interval === 'month' ? t(' / 月', ' / month') : t(' / 年', ' / year')}</Text></Text>
               <Text style={s.secondary}>{t('税込・1家族グループあたり', 'Tax included · per family group')}</Text>
+              <Text style={s.secondary}>{t('新規お申し込み向けの料金です。ご契約中の料金は変更されません。', 'Prices for new subscriptions. Existing contract prices are unchanged.')}</Text>
               <View style={s.planRule} />
               <Text style={s.secondary}>{family
                 ? t('3人目以降の人数追加料金はありません。ご家族の人数上限もありません。', 'No added member fees from the third person onward. There is no family member limit.')
                 : t('2名以上で利用する場合は家族プランになります。招待しただけで請求されることはありません。', 'Two or more members use the family plan. Sending an invitation does not create a charge.')}</Text>
-            </View>
+            </View> : <Text style={s.copy}>{t('ご利用人数を確認できないため、料金を表示できません。', 'Pricing is unavailable because the approved member count could not be confirmed.')}</Text>}
             <Text style={s.copy}>{t('お支払いにはStripeを利用する予定です。決済リンクはまだ設定されていないため、現在はお申し込みできません。', 'Payment will be handled through Stripe. The payment link is not set up yet, so you cannot subscribe here now.')}</Text>
             <Pressable accessibilityRole="button" disabled accessibilityState={{ disabled: true }} aria-disabled style={s.unavailable}>
               <Text style={s.unavailableText}>{t('決済の準備中', 'Payment is not available yet')}</Text>
