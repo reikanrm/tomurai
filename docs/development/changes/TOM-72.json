@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-72",
+  "requirements": ["R19", "R41", "R44", "R46", "R48"],
+  "gates": ["G06"],
+  "allowedPaths": ["docs/ssot/docs-preview.md", "docs/adr/0001-repositories-and-ssot.md", "docs/development/changes/TOM-72.json", "docs/development/evidence/TOM-72.md"],
+  "evidence": "docs/development/evidence/TOM-72.md",
+  "docs": {"mode": "updated", "reason": "資料限定ビルドの法人ペルソナを明示し通常製品と分離", "paths": ["docs/ssot/docs-preview.md", "docs/adr/0001-repositories-and-ssot.md"]},
+  "testCommands": ["npm test", "npm run check", "npm run check:development -- --base a7793b5a4d675258800ab1e392123b2f07181481", "git diff --check"]
+}
