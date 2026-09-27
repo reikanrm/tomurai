@@ -14,5 +14,6 @@
 - [0010 委任されたPOレビュー実装](0010-delegated-po-review-implementation.md)
 - [0011 法人料金ドメイン](0011-corporate-pricing-domain.md)
 - [0012 共通開発スキルと変更検証](0012-shared-development-skills-and-change-gates.md)
+- [0013 Iconoirによる主要アイコンの統一](0013-iconoir-native-icons.md)
 
 「採用」は設計方針の決定を意味し、法務監修・実装完了・公開承認ではない。

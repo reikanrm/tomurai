@@ -100,3 +100,7 @@ TOM-27/TOM-28の参照値と意図した差分は[POモックとの視覚対応]
 ## 共通開発スキル（2026-09-27）
 
 [TOM-67](https://linear.app/aitane/issue/TOM-67)：Codex/Claude Codeの共通スキル、変更契約、CI検査、否定試験。[正本](../ssot/development-harness.md)と[証跡](evidence/TOM-67.md)を参照。生前ノート第4問を保留したまま、開発手順だけを整備する。グローバル設定・GitHub保護設定・インフラ・実送信は変更しない。
+
+## Iconoirへの更新（2026-09-27）
+
+[TOM-68](https://linear.app/aitane/issue/TOM-68)：気分5種を中心に、専門家カテゴリ・下部ナビ・ケア行動のアイコンを公式React Nativeコンポーネントへ統一。[正本](../ssot/iconography.md)、[ADR-0013](../adr/0013-iconoir-native-icons.md)、[証跡](evidence/TOM-68.md)を参照。円相ロゴ、文言、権限、保存・送信動作は変更しない。過去のWeb図形/絵文字完全一致要件は対象アイコンについてのみ置き換える。

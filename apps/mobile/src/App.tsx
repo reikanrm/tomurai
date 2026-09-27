@@ -33,6 +33,7 @@ import { todayInJapan } from './domain/calendar';
 import { bundledNotoFonts } from './fonts';
 import { googleMapsSearchUrl } from './domain/maps';
 import { navigationIcons } from './data/navigation';
+import { AppIcon } from './components/AppIcon';
 import type { Locale } from './data/questions';
 import { colors as c, font, fonts } from './theme';
 import { taskRowMetrics as row } from './domain/task-row-layout';
@@ -289,7 +290,9 @@ function Tomurai() {
       {screen !== 'onboarding' && <View style={s.nav} accessibilityRole="tablist">
         {(['home', 'tasks', 'specialists', 'care'] as Screen[]).map((value, i) => <Pressable key={value}
           accessibilityRole="tab" accessibilityState={{ selected: screen === value }} aria-selected={screen === value} onPress={() => navigate(value)} style={s.navButton}>
-          <Text accessible={false} aria-hidden style={[s.navIcon, screen === value && s.navIconActive]}>{navigationIcons[value as keyof typeof navigationIcons]}</Text>
+          <View style={[s.navIcon, screen === value && s.navIconActive]}>
+            <AppIcon name={navigationIcons[value as keyof typeof navigationIcons]} size={22} color={screen === value ? c.green : c.muted} />
+          </View>
           <Text style={[s.navText, screen === value && s.navActive]}>{[t('ホーム', 'Home'), t('タスク', 'Tasks'), t('専門家', 'Support'), t('心のケア', 'Self-care')][i]}</Text>
         </Pressable>)}
       </View>}
@@ -384,7 +387,7 @@ const s = StyleSheet.create({
   assigneeInitial: { fontFamily: font, fontSize: 9, lineHeight: 13, color: c.muted }, assigneeText: { fontFamily: font, fontSize: 12, lineHeight: 17, color: c.muted }, assigneeTextSelected: { color: c.green },
   nav: { flexDirection: 'row', borderTopWidth: 1, borderColor: c.line, paddingVertical: 9, paddingHorizontal: 6, backgroundColor: c.paper },
   navButton: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4, minHeight: 47, gap: 4 },
-  navIcon: { fontFamily: fonts.regular, fontSize: 17, lineHeight: 25, color: c.muted, opacity: .5 }, navIconActive: { color: c.green, opacity: 1 },
+  navIcon: { height: 25, justifyContent: 'center', opacity: .5 }, navIconActive: { opacity: 1 },
   navText: { fontFamily: fonts.regular, fontSize: 10, lineHeight: 14, color: c.muted }, navActive: { color: c.green },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(35,41,34,.38)', justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 480, maxHeight: '88%', backgroundColor: c.paper, borderTopLeftRadius: 12, borderTopRightRadius: 12 },

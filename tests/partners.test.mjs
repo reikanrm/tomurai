@@ -111,6 +111,7 @@ function harness() {
     if (id === '../domain/partners') return partners;
     if (id === '../domain/calendar') return calendar;
     if (id === '../theme') return theme;
+    if (id === './AppIcon') return { AppIcon: 'AppIcon' };
     throw Error(`Unexpected import: ${id}`);
   } };
   const element = (type, props) => ({ type, props, children: props?.children });
@@ -145,6 +146,26 @@ test('a permitted partner appears only in its matching field; consultation passe
     consultation[0].props.onPress();
     assert.deepEqual(chosen, [listed]);
     assert.match(text(tree), locale === 'ja' ? /名称順/ : /name order/);
+  }
+});
+
+test('specialist categories use four decorative Iconoir components without changing bilingual content', () => {
+  for (const locale of ['ja', 'en']) {
+    const tree = harness()({ locale, today: options.today, onOpenMap: () => {}, error: '' });
+    const rendered = nodes(tree).filter(node => node.type === 'AppIcon');
+    assert.deepEqual(rendered.map(node => node.props.name), ['Book', 'JournalPage', 'Heart', 'BoxIso']);
+    assert.ok(rendered.every(node => node.props.size === 28));
+    assert.ok(rendered.every(node => node.props.onPress === undefined && node.props.accessibilityLabel === undefined));
+    assert.doesNotMatch(text(tree), /⚖|🧾|🕊|📦/);
+    const categories = nodes(tree).filter(node => node.type === 'View' &&
+      (Array.isArray(node.children) ? node.children : [node.children]).some(child => child?.type === 'AppIcon'));
+    assert.equal(categories.length, 4);
+    for (const category of categories) {
+      const style = category.props.style;
+      assert.equal(style.width, 42);
+      assert.equal(style.height, 42);
+      assert.equal(style.borderRadius, 21);
+    }
   }
 });
 

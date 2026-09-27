@@ -8,6 +8,8 @@
 
 以下は公開モックから取得したCSS値・ブラウザーの行ボックス実測値と、React Nativeの指定値の対応である。実装方針と意図した差分を記録するもので、表示試験合格・PO承認・実機検証の証跡ではない。実行した検証は[検証記録](./verification-2026-09-26.md)と各チケットへ別途残す。
 
+**2026-09-27 TOM-68更新**：下記の気分emoji、カテゴリemoji、ナビUnicode、Web行動SVGは参照時点の履歴。最新の明示依頼で[Iconoir仕様](../ssot/iconography.md)へ置き換える。気分カードは角14/丸背景40/図形28/最小高108と選択チェック、カテゴリは丸背景42/図形28、ナビ22、行動26。文字寸法・意味・動作・円相は継承する。
+
 ## 1. 円相は元画像の筆跡を使う
 
 原画像は[enso-original.png](../../apps/mobile/assets/enso-original.png)。共有された1024×1024 PNGを変更せず同梱し、元のアルファを[EnsoProgress](../../apps/mobile/src/components/EnsoProgress.tsx)のSVGマスクに使う。独自のベジェ曲線による円相、二値化・描き直しで代替しない。

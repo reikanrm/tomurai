@@ -4,26 +4,27 @@ import type { Locale } from '../data/questions';
 import { todayInJapan } from '../domain/calendar';
 import { registeredPartners, selectPartners, type Partner, type PartnerField } from '../domain/partners';
 import { colors as c, fonts } from '../theme';
+import { AppIcon, type AppIconName } from './AppIcon';
 
 // Preserve the PO card anatomy; only approved, active registry entries appear.
 const categories = [
-  { id: 'law', icon: '⚖️', role: ['相続・法律', 'INHERITANCE & LAW'], title: ['弁護士・司法書士', 'Lawyers & judicial scriveners'],
+  { id: 'law', icon: 'Book', role: ['相続・法律', 'INHERITANCE & LAW'], title: ['弁護士・司法書士', 'Lawyers & judicial scriveners'],
     tag: ['相続の相談', 'Inheritance support'], query: '弁護士 司法書士 相続',
     copy: ['相続に関する確認や手続きについて、相談先を探せます。', 'Find someone to discuss inheritance questions and procedures.'],
     hint: ['対応分野・相談料・受付方法は、各窓口に確認してください。', 'Check each office’s services, fees and booking arrangements.'] },
-  { id: 'tax', icon: '🧾', role: ['税金のこと', 'TAX QUESTIONS'], title: ['税理士', 'Tax accountants'],
+  { id: 'tax', icon: 'JournalPage', role: ['税金のこと', 'TAX QUESTIONS'], title: ['税理士', 'Tax accountants'],
     tag: ['相続税の相談', 'Inheritance tax'], query: '税理士 相続',
     copy: ['税金についてわからないことがあるとき、相談先を探せます。', 'Find support for questions about tax.'],
     hint: ['申告の要否や個別の期限は、この画面では判断しません。専門家へご確認ください。', 'This screen does not determine filing obligations or individual deadlines. Ask a professional.'] },
-  { id: 'care', icon: '🕊', role: ['こころのケア', 'GRIEF SUPPORT'], title: ['グリーフカウンセラー', 'Grief counsellors'],
+  { id: 'care', icon: 'Heart', role: ['こころのケア', 'GRIEF SUPPORT'], title: ['グリーフカウンセラー', 'Grief counsellors'],
     tag: ['死別後の相談', 'Bereavement support'], query: 'グリーフケア カウンセリング',
     copy: ['話したくなったときに、相談先を探せます。今すぐ決める必要はありません。', 'Find someone to talk to when you want. You do not need to decide now.'],
     hint: ['資格・対応言語・相談料などを、ご自身に合うか確認してください。', 'Check qualifications, languages and fees to find what suits you.'] },
-  { id: 'belongings', icon: '📦', role: ['遺品整理', 'SORTING BELONGINGS'], title: ['遺品整理の相談先', 'Help with belongings'],
+  { id: 'belongings', icon: 'BoxIso', role: ['遺品整理', 'SORTING BELONGINGS'], title: ['遺品整理の相談先', 'Help with belongings'],
     tag: ['片付け・整理', 'Sorting & clearing'], query: '遺品整理',
     copy: ['片付けを進める前に、対応内容を確認できる窓口を探せます。', 'Find a service and check what it offers before arranging any work.'],
     hint: ['見積もり・作業内容を確認してください。相続放棄を検討する場合、売却・処分の前に専門家へ確認しましょう。', 'Check the quote and scope of work. If considering renunciation, seek professional advice before selling or disposing of property.'] },
-] satisfies { id: PartnerField; icon: string; role: string[]; title: string[]; tag: string[]; query: string; copy: string[]; hint: string[] }[];
+] satisfies { id: PartnerField; icon: AppIconName; role: string[]; title: string[]; tag: string[]; query: string; copy: string[]; hint: string[] }[];
 
 export function SpecialistsScreen({ locale, onOpenMap, error, partners = registeredPartners, region, today = todayInJapan(), onConsult }: {
   locale: Locale; onOpenMap: (query: string) => void; error: string;
@@ -41,7 +42,7 @@ export function SpecialistsScreen({ locale, onOpenMap, error, partners = registe
     {categories.map(category => {
       const listed = selectPartners(partners, { field: category.id, region, today, locale });
       return <View key={category.id} style={s.card}>
-      <View style={s.top}><View style={s.avatar}><Text accessible={false} aria-hidden style={s.icon}>{category.icon}</Text></View>
+      <View style={s.top}><View style={s.avatar}><AppIcon name={category.icon} size={28} /></View>
         <View style={{ flex: 1 }}><Text style={s.role}>{category.role[language]}</Text>
           <Text accessibilityRole="header" style={s.name}>{category.title[language]}</Text><Text style={s.tag}>{category.tag[language]}</Text></View></View>
       <View style={s.match}><Text style={s.matchText}>{category.copy[language]}</Text></View>
@@ -79,8 +80,7 @@ const s = StyleSheet.create({
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: c.muted, lineHeight: 25.9, marginBottom: 26 },
   card: { borderWidth: 1, borderColor: c.line, borderRadius: 3, padding: 20, marginBottom: 14 },
   top: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginBottom: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 3, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center' },
-  icon: { fontFamily: fonts.light, fontSize: 18, lineHeight: 26 },
+  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center' },
   role: { fontFamily: fonts.light, fontSize: 10.5, lineHeight: 15, letterSpacing: .84, color: c.green, marginBottom: 3 },
   name: { fontFamily: fonts.medium, fontSize: 14.5, lineHeight: 21, color: c.ink, marginBottom: 3 },
   tag: { fontFamily: fonts.light, fontSize: 11.5, lineHeight: 17, color: c.muted },

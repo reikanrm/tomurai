@@ -13,6 +13,7 @@
   "dependencies": {
     "expo": "57.0.25",
     "expo-font": "57.0.4",
+    "iconoir-react-native": "7.12.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",

@@ -33,6 +33,8 @@ function harness() {
     if (id === '../theme') return theme;
     // Full SVG geometry/accessibility is exercised by care-icons.test.mjs.
     if (id === './CareActionIcon') return { CareActionIcon: 'CareActionIcon' };
+    if (id === './CareMoodIcon') return { CareMoodIcon: 'CareMoodIcon' };
+    if (id === './AppIcon') return { AppIcon: 'AppIcon' };
     throw Error(`Unexpected component import: ${id}`);
   } };
   vm.runInNewContext(compiled, context);
@@ -132,4 +134,21 @@ test('changing language preserves local selection while a newly mounted care scr
   const newScreen = harness()(input('en'));
   assert.ok(actions(newScreen).every(node => node.props['aria-expanded'] === false));
   assert.ok(care.careMoods.every(option => moodButton(newScreen, option.id, 'en').props['aria-pressed'] === false));
+});
+
+test('each selected mood has a non-color check marker and removing the choice removes it', () => {
+  for (const locale of ['ja', 'en']) {
+    const render = harness(), props = input(locale);
+    const checks = tree => nodes(tree).filter(node => node.type === 'AppIcon' && node.props.name === 'Check');
+    assert.equal(checks(render(props)).length, 0);
+    for (const option of care.careMoods) {
+      moodButton(render(props), option.id, locale).props.onPress();
+      const selected = render(props);
+      assert.equal(checks(selected).length, 1);
+      assert.equal(checks(moodButton(selected, option.id, locale)).length, 1);
+      assert.equal(moodButton(selected, option.id, locale).props.accessibilityState.selected, true);
+      moodButton(selected, option.id, locale).props.onPress();
+      assert.equal(checks(render(props)).length, 0);
+    }
+  }
 });

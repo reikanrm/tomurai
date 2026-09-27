@@ -9,7 +9,7 @@ test('moods have stable unique IDs and labels in both languages', () => {
   for (const mood of careMoods) {
     assert.ok(mood.label.ja);
     assert.ok(mood.label.en);
-    assert.ok(mood.icon);
+    assert.equal(Object.hasOwn(mood, 'icon'), false, 'meaning and labels are independent of artwork');
     assert.notEqual(mood.id, mood.label.ja);
     assert.notEqual(mood.id, mood.label.en);
   }

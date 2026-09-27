@@ -4,6 +4,8 @@ import { careMoods, toggleCareMood, selfCareActions, toggleSelfCareAction, type 
 import type { Locale } from '../data/questions';
 import { colors as c, fonts } from '../theme';
 import { CareActionIcon, type CareActionIconName } from './CareActionIcon';
+import { CareMoodIcon } from './CareMoodIcon';
+import { AppIcon } from './AppIcon';
 
 const selfCareIcons: Record<SelfCareActionId, CareActionIconName> = {
   water: 'tea', rest: 'breath', connection: 'message',
@@ -44,7 +46,12 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
         aria-pressed={mood === option.id}
         onPress={() => setMood(current => toggleCareMood(current, option.id))}
         style={[s.moodCard, mood === option.id && s.moodSelected]}>
-        <Text accessible={false} aria-hidden style={s.moodIcon}>{option.icon}</Text>
+        <View style={[s.moodIcon, mood === option.id && s.moodIconSelected]}>
+          <CareMoodIcon mood={option.id} />
+          {mood === option.id && <View pointerEvents="none" accessible={false} aria-hidden style={s.moodCheck}>
+            <AppIcon name="Check" size={10} color={c.white} strokeWidth={2} />
+          </View>}
+        </View>
         <Text style={[s.moodLabel, mood === option.id && s.moodLabelSelected]}>{option.label[locale]}</Text>
       </Pressable>)}
     </View>
@@ -89,8 +96,8 @@ export function CareScreen({ locale, onPause, onFindSupport }: CareScreenProps) 
 // TOM-28: values transcribed from the public PO mobile mock, not the separate
 // desktop index.html. Normal line-height is matched to measured PO browser line
 // boxes; only the quote and page subheading have explicitly specified line-height.
-// TOM-59 changes only the action artwork/40px box to the Web care SVGs.
-// React Native/Web renderers can differ in glyph rasterization.
+// TOM-68 supersedes emoji/Web artwork with Iconoir and rounded mood cards.
+// The approved copy, fonts, action behaviour and non-persistence are unchanged.
 const s = StyleSheet.create({
   eyebrow: { fontFamily: fonts.light, fontSize: 11, lineHeight: 16, letterSpacing: 1.76, color: c.muted, marginBottom: 8 },
   pageTitle: { fontFamily: fonts.bold, fontSize: 22, lineHeight: 32, color: c.ink, marginBottom: 6 },
@@ -102,9 +109,11 @@ const s = StyleSheet.create({
   supplement: { fontFamily: fonts.light, fontSize: 12, lineHeight: 22.2, color: c.muted, textAlign: 'center', marginTop: -16, marginBottom: 30 },
   moodTitle: { fontFamily: fonts.light, fontSize: 16, lineHeight: 24, color: c.ink, textAlign: 'center', marginBottom: 18 },
   moods: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 30 },
-  moodCard: { alignItems: 'center', gap: 6, width: 76, minHeight: 93, paddingVertical: 12, paddingHorizontal: 10, borderWidth: 1, borderColor: c.line, borderRadius: 3, backgroundColor: c.paperDeep },
+  moodCard: { alignItems: 'center', gap: 6, width: 76, minHeight: 108, paddingVertical: 12, paddingHorizontal: 10, borderWidth: 1, borderColor: c.line, borderRadius: 14, backgroundColor: c.paperDeep },
   moodSelected: { backgroundColor: c.warmPaper, borderColor: c.warm },
-  moodIcon: { fontFamily: fonts.light, fontSize: 20, lineHeight: 29 },
+  moodIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.paper, alignItems: 'center', justifyContent: 'center' },
+  moodIconSelected: { backgroundColor: c.white },
+  moodCheck: { position: 'absolute', right: -2, bottom: -1, width: 16, height: 16, borderRadius: 8, backgroundColor: c.green, alignItems: 'center', justifyContent: 'center' },
   moodLabel: { fontFamily: fonts.light, fontSize: 11, lineHeight: 16, color: c.muted, textAlign: 'center' },
   moodLabelSelected: { color: c.warm },
   moodNote: { fontFamily: fonts.light, fontSize: 11, lineHeight: 16, color: c.muted, textAlign: 'center' },

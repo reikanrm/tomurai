@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "ticket": "TOM-68",
+  "requirements": ["C07", "C15", "R19", "R41", "R44", "R46", "R48"],
+  "gates": ["G03", "G06"],
+  "allowedPaths": [
+    "apps/mobile/package.json", "package-lock.json", "apps/mobile/src/App.tsx",
+    "apps/mobile/src/components/AppIcon.tsx", "apps/mobile/src/components/CareMoodIcon.tsx",
+    "apps/mobile/src/components/CareActionIcon.tsx", "apps/mobile/src/components/CareScreen.tsx",
+    "apps/mobile/src/components/SpecialistsScreen.tsx", "apps/mobile/src/data/care.ts", "apps/mobile/src/data/navigation.ts",
+    "tests/care-icons.test.mjs", "tests/iconoir-icons.test.mjs", "tests/care.test.mjs", "tests/navigation.test.mjs",
+    "tests/partners.test.mjs", "tests/self-care-actions-render.test.mjs",
+    "docs/adr/0013-iconoir-native-icons.md", "docs/adr/README.md", "docs/ssot/iconography.md",
+    "docs/ssot/product-requirements.md", "docs/ssot/bereavement-guidance.md", "docs/ssot/po-review-implementation.md",
+    "docs/ssot/screen-catalog.json", "docs/development/po-visual-parity.md", "docs/development/linear-index.md",
+    "docs/development/changes/TOM-68.json", "docs/development/evidence/TOM-68.md"
+  ],
+  "evidence": "docs/development/evidence/TOM-68.md",
+  "docs": {"mode": "updated", "reason": "Iconoirへの図柄変更を最新明示依頼としてSSOT/ADR/仕様・設計へ先行記録。旧Web/emoji完全一致を対象だけ更新。", "paths": ["docs/ssot/iconography.md", "docs/adr/0013-iconoir-native-icons.md", "docs/ssot/product-requirements.md"]},
+  "testCommands": ["npm test", "npm run check", "npm run typecheck", "npm run build:web", "npm run check:development -- --base 41115c52f6963337d79ac897485ffa3be5b55470", "git diff --check"]
+}

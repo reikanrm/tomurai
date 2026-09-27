@@ -1,3 +1,2 @@
-// Exact Unicode symbols from the PO's Claude mobile mock <nav>.
-// Do not substitute a map arrow or a hollow circle for these two symbols.
-export const navigationIcons = { home: '○', tasks: '☰', specialists: '⚖', care: '🕊' } as const;
+// TOM-68: official Iconoir component names; routes and accessible labels stay stable.
+export const navigationIcons = { home: 'HomeSimple', tasks: 'TaskList', specialists: 'Community', care: 'Heart' } as const;
