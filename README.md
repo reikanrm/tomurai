@@ -12,6 +12,13 @@ React Nativeのフロントを実装中です。API・認証・保存・家族�
 - [仕様・設計サイト](https://github.com/JunichiroAita/tomurai-docs)：画面ごとの説明と同じフロントのプレビュー。Figmaは使用しません。
 - [Linear索引](docs/development/linear-index.md)：作業群・公開条件・小タスク
 - [TAKT手順](docs/development/TAKT.md)／[小タスク様式](docs/development/task-template.md)
+- [共通開発スキル](.agents/skills/tomurai-development/SKILL.md)／[変更検証の正本](docs/ssot/development-harness.md)：CodexとClaude Codeで同じ手順を使います。
+
+## 開発エージェントで作業する
+
+このリポジトリのルートで起動してください。Codexは `$tomurai-development`、Claude Codeは `/tomurai-development` で明示選択できます。AGENTS.md/CLAUDE.mdからも共通手順を読みます。自動選択はクライアント設定によるため、初回は読み込んだスキル名・対象票・変更範囲を確認してください。
+
+実装前に `docs/development/changes/TOM-<番号>.json` を作成/更新し、実施結果は証跡へ分けます。`npm run check:development -- --base <開始前HEAD>` は今回の契約と実Git差分を照合します。検査導入はbranch protectionや公開承認を意味しません。
 
 ## ローカル検査
 

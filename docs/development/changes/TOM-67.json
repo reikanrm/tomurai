@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "ticket": "TOM-67",
+  "requirements": ["C01", "C05", "C15", "R43", "R44", "R46", "R47"],
+  "gates": ["G01", "G02", "G03", "G04", "G05", "G06"],
+  "allowedPaths": [
+    ".agents/skills/tomurai-development/SKILL.md",
+    ".agents/skills/tomurai-development/agents/openai.yaml",
+    ".agents/skills/tomurai-development/references/routing.md",
+    ".agents/skills/tomurai-development/references/safety.md",
+    ".agents/skills/tomurai-development/references/verification.md",
+    ".claude/skills/tomurai-development/SKILL.md",
+    ".github/workflows/dev-checks.yml",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "README.md",
+    "docs/adr/0012-shared-development-skills-and-change-gates.md",
+    "docs/adr/README.md",
+    "docs/development/changes/TOM-67.json",
+    "docs/development/evidence/TOM-67.md",
+    "docs/development/skill-evaluation-cases.json",
+    "docs/development/linear-index.md",
+    "docs/development/task-template.md",
+    "docs/ssot/development-harness.md",
+    "docs/ssot/product-requirements.md",
+    "package.json",
+    "scripts/check-development.mjs",
+    "tests/development-guard.test.mjs"
+  ],
+  "evidence": "docs/development/evidence/TOM-67.md",
+  "docs": {
+    "mode": "updated",
+    "reason": "共通開発手順と機械検査をSSOT/ADRに先行記録。資料repoの仕様書・設計書・入口も更新し、差分は別途検証する。業務機能や公開条件は変更しない。",
+    "paths": ["docs/ssot/development-harness.md", "docs/adr/0012-shared-development-skills-and-change-gates.md", "docs/ssot/product-requirements.md"]
+  },
+  "testCommands": [
+    "node --test tests/development-guard.test.mjs",
+    "npm test",
+    "npm run check",
+    "npm run check:development -- --base 1105e3cf9700be288e900bd38f8aed151bb93a6f",
+    "npm run typecheck",
+    "git diff --check"
+  ]
+}

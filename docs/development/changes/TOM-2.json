@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "ticket": "TOM-2",
+  "requirements": ["C06", "C15", "R08"],
+  "gates": ["G03", "G04"],
+  "allowedPaths": [
+    "docs/adr/0010-delegated-po-review-implementation.md",
+    "docs/ssot/authorization-and-entitlements.md",
+    "docs/ssot/life-notes.md",
+    "docs/ssot/po-review-2026-09-26.md",
+    "docs/ssot/po-review-implementation.md",
+    "docs/ssot/product-requirements.md",
+    "docs/development/changes/TOM-2.json",
+    "docs/development/evidence/TOM-2.md"
+  ],
+  "evidence": "docs/development/evidence/TOM-2.md",
+  "docs": {
+    "mode": "updated",
+    "reason": "明示回答済みの第1〜3問を記録した既存未コミット文書。第4問は未回答・保留。TOM-67に混同しない。",
+    "paths": ["docs/ssot/life-notes.md", "docs/adr/0010-delegated-po-review-implementation.md"]
+  },
+  "testCommands": ["npm test", "npm run check", "npm run check:development -- --base 1105e3cf9700be288e900bd38f8aed151bb93a6f"]
+}

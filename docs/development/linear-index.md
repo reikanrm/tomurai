@@ -96,3 +96,7 @@ TOM-22〜25の成果物はレビューへ渡す。バックエンド・認証・
 TOM-64〜66は[専門家ダッシュボードの別プロジェクト](https://linear.app/aitane/project/tomurai専門家ダッシュボード仕様策定-90e25e419922)。別リポジトリ/インフラの承認ではない。
 
 TOM-27/TOM-28の参照値と意図した差分は[POモックとの視覚対応](./po-visual-parity.md)。見た目の修正は認証・保存・外部送信・公開の追加承認を意味しない。
+
+## 共通開発スキル（2026-09-27）
+
+[TOM-67](https://linear.app/aitane/issue/TOM-67)：Codex/Claude Codeの共通スキル、変更契約、CI検査、否定試験。[正本](../ssot/development-harness.md)と[証跡](evidence/TOM-67.md)を参照。生前ノート第4問を保留したまま、開発手順だけを整備する。グローバル設定・GitHub保護設定・インフラ・実送信は変更しない。

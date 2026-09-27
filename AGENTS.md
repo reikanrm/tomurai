@@ -2,6 +2,7 @@
 
 ## Read before changing code
 
+- For any Tomurai development task, read `.agents/skills/tomurai-development/SKILL.md` and follow its request-mode routing. Read-only questions do not authorize edits. This is the canonical shared procedure for Codex and Claude Code.
 - Read `docs/ssot/product-requirements.md` and the scoped Linear child ticket.
 - Implement on `dev`. Never push or merge into `main`; the PO uses it for mocks.
 - ADR and SSOT live here. Reader-facing specification/design docs live in `JunichiroAita/tomurai-docs`.
@@ -32,6 +33,7 @@
 
 ## Verification
 
+- Record scoped changes in `docs/development/changes/TOM-<number>.json` and actual evidence separately; follow `docs/ssot/development-harness.md`. Run `npm run check:development -- --base <starting-HEAD>` before handoff. The check is not a sandbox or release approval.
 - Run `npm test`, `npm run check`, and ticket-specific checks. Baseline checks are not app acceptance tests.
 - For workflow edits, run `takt workflow doctor .takt/workflows/tomurai-small-change.yaml` with TAKT 0.49.0.
 - Record actual commands/results and remaining failures; do not mark unexecuted tests as passing.

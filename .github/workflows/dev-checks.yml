@@ -12,10 +12,20 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22.21.0
           cache: npm
+      - name: Verify ticket contracts against changed files
+        env:
+          DEV_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "$DEV_BASE" || "$DEV_BASE" =~ ^0+$ ]]; then
+            DEV_BASE="$(git rev-list --max-parents=0 HEAD)"
+          fi
+          node scripts/check-development.mjs --base "$DEV_BASE"
       - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run check

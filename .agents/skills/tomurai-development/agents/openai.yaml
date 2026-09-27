@@ -1,0 +1,6 @@
+interface:
+  display_name: "Tomurai Development"
+  short_description: "Tomuraiの承認済み仕様から実装・検証・チケット更新をつなぐ共通開発手順"
+  default_prompt: "Use $tomurai-development to handle this Tomurai task within its approved scope and report verified evidence."
+policy:
+  allow_implicit_invocation: true
