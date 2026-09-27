@@ -7,19 +7,23 @@ import * as domain from '../apps/mobile/src/domain/life-notes-service.ts';
 import { unavailableLifeNotes } from '../apps/mobile/src/domain/life-notes-port.ts';
 import { createDevelopmentLifeNotes } from '../apps/mobile/src/development/life-notes.ts';
 import * as catalog from '../apps/mobile/src/data/life-notes.ts';
+import * as fieldSchema from '../apps/mobile/src/data/life-note-fields.ts';
 import * as theme from '../apps/mobile/src/theme.ts';
 const source=readFileSync('apps/mobile/src/components/LifeNotesWorkspace.tsx','utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS}}).outputText;
+const inputCompiled=ts.transpileModule(readFileSync('apps/mobile/src/components/LifeNoteInput.tsx','utf8'),{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS}}).outputText;
 const nodes=x=>Array.isArray(x)?x.flatMap(nodes):x&&typeof x==='object'?(x.type==='Modal'&&!x.props.visible?[]:[x,...nodes(x.children??[])]):[];
 const text=x=>Array.isArray(x)?x.map(text).join(''):x&&typeof x==='object'?text(x.children??[]):typeof x==='string'||typeof x==='number'?String(x):'';
 function harness(port,locale='ja') {
   let i=0, hooks=[], effects=[], resume;
-  const react={Fragment:'Fragment',createElement:(type,props,...children)=>({type,props:props??{},children}),
+  const react={Fragment:'Fragment',createElement:(type,props,...children)=>typeof type==='function'?type({...props,children}):({type,props:props??{},children}),
     useState(initial){const n=i++;if(!(n in hooks))hooks[n]=typeof initial==='function'?initial():initial;return[hooks[n],next=>{hooks[n]=typeof next==='function'?next(hooks[n]):next;}];},
     useRef(initial){const n=i++;return hooks[n]??(hooks[n]={current:initial});},
     useEffect(fn,deps){const n=i++;if(!hooks[n]||deps.some((v,k)=>v!==hooks[n].deps[k])){effects.push(()=>{hooks[n]?.cleanup?.();hooks[n]={deps,cleanup:fn()};});}}};
   const native=Object.fromEntries(['View','Text','TextInput','Pressable','ScrollView','Modal'].map(x=>[x,x]));native.StyleSheet={create:x=>x};native.AppState={addEventListener:(_,fn)=>{resume=fn;return{remove(){resume=null;}};}};
-  const ctx={exports:{},React:react,setTimeout:()=>1,clearTimeout(){},require(id){if(id==='react')return react;if(id==='react-native')return native;if(id==='../theme')return theme;if(id==='../data/life-notes')return catalog;if(id==='../domain/life-notes-service')return domain;throw Error(id);}};
+  const inputExports={};
+  const ctx={exports:{},React:react,setTimeout:()=>1,clearTimeout(){},require(id){if(id==='react')return react;if(id==='react-native')return native;if(id==='../theme')return theme;if(id==='../data/life-notes')return catalog;if(id==='../data/life-note-fields')return fieldSchema;if(id==='./LifeNoteInput')return inputExports;if(id==='../domain/life-notes-service')return domain;throw Error(id);}};
+  vm.runInNewContext(inputCompiled,{...ctx,exports:inputExports});
   vm.runInNewContext(compiled,ctx);
   const render=()=>{i=0;const tree=ctx.exports.LifeNotesWorkspace({locale,port,onOpenNotes(){},onBack(){}});const work=effects;effects=[];work.forEach(fn=>fn());return tree;};
   const node=id=>nodes(render()).find(n=>n.props.testID===id);
@@ -56,6 +60,31 @@ test('corporate menu is explicit, ordinary URL and release do not grant an accou
   for(const label of ['法人・社員本人','法人・招待家族','法人・代理入力担当','親の下書き確認待ち','委任期限切れ']) assert.ok(menu.includes(label));
   assert.match(app,/lifePreviewEligible && lifeDevelopment \? lifeDevelopment.port/);assert.match(app,/: unavailableLifeNotes/);
   assert.doesNotMatch(source,/life-delegation-rehearsal|createDevelopmentLifeNotes|setPreviewAccess|localStorage|AsyncStorage|fetch\(/);
+});
+
+test('audited forms render ordered rows, choices, discard checks and no restricted inputs in both languages',async()=>{
+  for(const locale of ['ja','en']) {
+    const h=harness(createDevelopmentLifeNotes().port('corporate-employee'),locale);h.render();await h.flush();h.press('notes-chapter-me');
+    assert.ok(h.node('notes-blocked-me-basic'));assert.equal(h.node('notes-edit-me-basic'),undefined);
+    h.press('notes-edit-me-family');assert.equal(h.node('notes-save').props.disabled,true);
+    h.node('notes-input-name-0').props.onChangeText('合成家族');h.press('notes-choice-relation-child-0');
+    h.press('notes-add-row');assert.equal(h.node('notes-save').props.disabled,true);
+    h.node('notes-input-name-1').props.onChangeText('合成家族2');h.press('notes-close');assert.ok(h.node('notes-discard-confirm'));h.press('notes-continue');
+    h.press('notes-save');await h.flush();assert.match(text(h.node('notes-field-me-family')),/合成家族2/);assert.doesNotMatch(text(h.node('notes-field-me-family')),/\[object Object\]|"relation"/);
+    h.press('notes-chapter-future');h.press('notes-edit-future-value');h.press('notes-choice-choice-nature-0');h.press('notes-save');await h.flush();
+    assert.match(text(h.node('notes-field-future-value')),locale==='ja'?/自然/:/Nature/);
+    h.press('notes-chapter-medical');assert.ok(h.node('notes-blocked-medical-disclosure'));assert.equal(h.node('notes-input'),undefined);
+  }
+});
+
+test('delegated structured input only exposes its chapter and is confirmed with labels, not raw JSON',async()=>{
+  const dev=createDevelopmentLifeNotes(), parent=dev.port('corporate-family');let view=await parent.read();
+  await parent.execute({type:'delegate',operatorId:'dev-employee',fieldIds:['funeral-arrangements'],expectedRevision:view.revision,operationId:'typed-delegate'});
+  const h=harness(dev.port('corporate-delegate'));h.render();await h.flush();
+  assert.equal(h.node('notes-chapter-me'),undefined);assert.equal(h.node('notes-chapter-future'),undefined);
+  h.press('notes-chapter-funeral');h.press('notes-edit-funeral-arrangements');h.node('notes-input-flowers-0').props.onChangeText('合成の花');h.press('notes-save');await h.flush();
+  h.setPort(parent);await h.flush();h.press('notes-review-funeral-arrangements');assert.match(text(h.render()),/好きな花：合成の花/);h.press('notes-confirm');await h.flush();
+  assert.match(text(h.node('notes-field-funeral-arrangements')),/合成の花/);
 });
 
 test('same-port foreground reauthorization clears a no-longer-delegated editor',async()=>{

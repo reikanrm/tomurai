@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ticket": "TOM-73",
+  "requirements": ["C06", "C15", "R08", "R13", "R19", "R43", "R46"],
+  "gates": ["G02", "G03", "G04", "G06"],
+  "allowedPaths": ["docs/ssot/life-note-fields.md", "docs/ssot/life-notes-product.md", "docs/ssot/product-requirements.md", "docs/ssot/screen-catalog.json", "docs/adr/0016-typed-life-note-fields.md", "docs/development/evidence/TOM-73.md", "docs/development/changes/TOM-73.json", "apps/mobile/src/data/life-note-fields.ts", "apps/mobile/src/domain/life-notes-service.ts", "apps/mobile/src/components/LifeNotesWorkspace.tsx", "apps/mobile/src/components/LifeNoteInput.tsx", "tests/life-note-fields.test.mjs", "tests/life-notes-product-render.test.mjs"],
+  "evidence": "docs/development/evidence/TOM-73.md",
+  "docs": {"mode": "updated", "reason": "31フォーム実査と入力型/収集境界を先に固定。資料仕様・設計も先行", "paths": ["docs/ssot/life-note-fields.md", "docs/ssot/life-notes-product.md", "docs/adr/0016-typed-life-note-fields.md"]},
+  "testCommands": ["node --test tests/life-note-fields.test.mjs tests/life-notes-product-render.test.mjs", "npm test", "npm run typecheck", "npm run check", "npm run build:web", "npm run check:development -- --base 888ac7706df05a5753b10a9291930ba0201e554c"]
+}

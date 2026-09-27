@@ -1,13 +1,14 @@
 import { canCreateLifeNote, type LifeAccess } from './life-access.ts';
+import { activeLifeFieldIds, cloneLifeValue, normalizeLifeValue, type LifeValue } from '../data/life-note-fields.ts';
 
 export const DELEGATION_MS = 30 * 24 * 60 * 60 * 1000;
-export const lifeTextFields = ['future-try', 'future-family', 'future-learn', 'future-value', 'future-change'] as const;
+export const lifeTextFields = activeLifeFieldIds;
 export type LifeTextField = typeof lifeTextFields[number];
-export type LifeDraft = { text: string; revision: number; baseRevision: number; authorId: string; grantId: string };
-export type LifeEntry = { id: LifeTextField; confirmed: string; confirmedRevision: number; draftSequence: number; draft: LifeDraft | null };
+export type LifeDraft = { text: LifeValue; revision: number; baseRevision: number; authorId: string; grantId: string };
+export type LifeEntry = { id: LifeTextField; confirmed: LifeValue; confirmedRevision: number; draftSequence: number; draft: LifeDraft | null };
 export type LifeDelegation = { id: string; operatorId: string; fieldIds: LifeTextField[]; approvedAt: number; expiresAt: number; ownerEligibilityEpoch: number; operatorEligibilityEpoch: number; status: 'active' | 'revoked' | 'expired' | 'ineligible' };
 export type LifeNotebook = { id: string; ownerId: string; revision: number; sharingEnabled: false; fields: LifeEntry[]; delegation: LifeDelegation | null };
-export type LifeCommand = { noteId: string; expectedRevision: number; operationId: string; type: 'save' | 'delegate' | 'draft' | 'confirm' | 'discard' | 'revoke'; fieldId?: LifeTextField; text?: string; operatorId?: string; fieldIds?: LifeTextField[]; grantId?: string; draftRevision?: number; confirmedRevision?: number };
+export type LifeCommand = { noteId: string; expectedRevision: number; operationId: string; type: 'save' | 'delegate' | 'draft' | 'confirm' | 'discard' | 'revoke'; fieldId?: LifeTextField; text?: LifeValue; operatorId?: string; fieldIds?: LifeTextField[]; grantId?: string; draftRevision?: number; confirmedRevision?: number };
 export type LifeProjection = { noteId: string; revision: number; owner: boolean; canEdit: boolean; fields: LifeEntry[]; delegation: LifeDelegation | null; operators: {id: string; displayName: string}[] };
 export type LifeTransaction = { note: LifeNotebook; people: (LifeAccess & {displayName: string})[]; eligibilityEpochs: Record<string, number>; approvedOperators: string[]; ownerCanApprove: boolean; receipts: { actorId: string; operationId: string; payload: string }[] };
 /** The adapter must load current identities/eligibility and commit state + receipt atomically.
@@ -18,7 +19,6 @@ export type LifeErrorCode = 'forbidden' | 'conflict' | 'invalid' | 'unavailable'
 export class LifeServiceError extends Error { constructor(code: LifeErrorCode) { super(code); this.name = 'LifeServiceError'; } }
 function fail(code: LifeErrorCode): never { throw new LifeServiceError(code); }
 const validId = (id: unknown): id is string => typeof id === 'string' && /^[a-zA-Z0-9_-]{1,120}$/.test(id);
-const validText = (text: unknown): text is string => typeof text === 'string' && text.trim().length > 0 && text.length <= 2000 && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(text);
 export const emptyNotebook = (id: string, ownerId: string): LifeNotebook => ({ id, ownerId, revision: 0, sharingEnabled: false, delegation: null,
   fields: lifeTextFields.map(id => ({ id, confirmed: '', confirmedRevision: 0, draftSequence: 0, draft: null })) });
 const person = (state: LifeTransaction, id: string) => {
@@ -48,7 +48,7 @@ function access(state: LifeTransaction, actorId: string, noteId: string, now: nu
 function projection(state: LifeTransaction, actorId: string, now: number): LifeProjection {
   const a = access(state, actorId, state.note.id, now), note = state.note;
   return { noteId: note.id, revision: note.revision, owner: a.owner, canEdit: a.owner ? a.editable : a.delegated,
-    fields: note.fields.filter(f => a.owner || note.delegation!.fieldIds.includes(f.id)).map(f => ({ ...f, draft: f.draft ? { ...f.draft } : null })),
+    fields: note.fields.filter(f => lifeTextFields.includes(f.id) && (a.owner || note.delegation!.fieldIds.includes(f.id))).map(f => ({ ...f, confirmed:cloneLifeValue(f.confirmed), draft: f.draft ? { ...f.draft, text:cloneLifeValue(f.draft.text) } : null })),
     delegation: note.delegation ? { ...note.delegation, fieldIds: [...note.delegation.fieldIds] } : null,
     operators: a.owner ? state.approvedOperators.filter(id => id !== actorId && staff(state, id) && person(state,id)?.displayName.trim()).map(id=>({id,displayName:person(state,id)!.displayName})) : [] };
 }
@@ -76,7 +76,10 @@ export function createLifeService(repository: LifeRepository, clock: () => numbe
       if (!['save','delegate','draft','confirm','discard','revoke'].includes(command.type)) fail('invalid');
       if (command.type === 'draft' ? !a.delegated || !note.delegation || command.grantId !== note.delegation.id || !note.delegation.fieldIds.includes(command.fieldId!)
         : !a.owner || (['save','delegate','confirm'].includes(command.type) && !a.editable)) fail('forbidden');
-      const payload = JSON.stringify(Object.fromEntries(Object.entries(command).sort(([a], [b]) => a.localeCompare(b))));
+      if(command.fieldId && !lifeTextFields.includes(command.fieldId))fail('invalid');
+      const content = ['save','draft'].includes(command.type) ? normalizeLifeValue(command.fieldId!,command.text) : undefined;
+      if(['save','draft'].includes(command.type)&&content===undefined)fail('invalid');
+      const payload = JSON.stringify(Object.fromEntries(Object.entries({...command,...(content!==undefined?{text:content}:{})}).sort(([a], [b]) => a.localeCompare(b))));
       const receipt = state.receipts.find(r => r.actorId === actorId && r.operationId === command.operationId);
       if (receipt) { if (receipt.payload !== payload) fail('conflict'); return projection(state, actorId, now); }
       if (command.expectedRevision !== note.revision) fail('conflict');
@@ -88,18 +91,16 @@ export function createLifeService(repository: LifeRepository, clock: () => numbe
           const ids = command.fieldIds;
           if (!validId(command.operatorId) || command.operatorId === actorId || !state.approvedOperators.includes(command.operatorId) || !staff(state, command.operatorId)
             || !person(state,command.operatorId)?.displayName.trim() || epoch(state, actorId) < 0 || epoch(state, command.operatorId) < 0) fail('forbidden');
-          if (!ids?.length || new Set(ids).size !== ids.length || ids.some(id => !lifeTextFields.includes(id))) fail('invalid');
+          if (!Array.isArray(ids) || !ids.length || new Set(ids).size !== ids.length || ids.some(id => !lifeTextFields.includes(id))) fail('invalid');
           note.delegation = { id: `${note.id}-${note.revision + 1}`, operatorId: command.operatorId, fieldIds: [...ids], approvedAt: now, expiresAt: now + DELEGATION_MS, ownerEligibilityEpoch:epoch(state,actorId), operatorEligibilityEpoch:epoch(state,command.operatorId), status: 'active' }; break;
         }
         case 'save':
-          if (!validText(command.text)) fail('invalid');
           if (command.confirmedRevision !== field!.confirmedRevision) fail('conflict');
-          field!.confirmed = command.text.trim(); field!.confirmedRevision++; break;
+          field!.confirmed = content!; field!.confirmedRevision++; break;
         case 'draft':
-          if (!validText(command.text)) fail('invalid');
           if (command.confirmedRevision !== field!.confirmedRevision || command.draftRevision !== (field!.draft?.revision ?? 0)) fail('conflict');
           field!.draftSequence++;
-          field!.draft = { text: command.text.trim(), revision: field!.draftSequence, baseRevision: field!.confirmedRevision, authorId: actorId, grantId: note.delegation!.id }; break;
+          field!.draft = { text: content!, revision: field!.draftSequence, baseRevision: field!.confirmedRevision, authorId: actorId, grantId: note.delegation!.id }; break;
         case 'confirm':
           if (!field!.draft || command.draftRevision !== field!.draft.revision || command.confirmedRevision !== field!.confirmedRevision || field!.draft.baseRevision !== field!.confirmedRevision) fail('conflict');
           field!.confirmed = field!.draft.text; field!.confirmedRevision++; field!.draft = null; break;

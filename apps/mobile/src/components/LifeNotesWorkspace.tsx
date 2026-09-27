@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { AppState, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AppState, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { Locale } from '../data/questions';
 import { lifeChapters } from '../data/life-notes';
-import { lifeTextFields, type LifeEntry, type LifeProjection, type LifeTextField } from '../domain/life-notes-service';
+import { type LifeEntry, type LifeProjection, type LifeTextField } from '../domain/life-notes-service';
+import { lifeFields, lifeField, cloneLifeValue, editableLifeValue, formatLifeValue, normalizeLifeValue, type LifeValue } from '../data/life-note-fields';
+import { LifeNoteInput } from './LifeNoteInput';
 import type { LifeMutation, LifeNotesPort } from '../domain/life-notes-port';
 import { colors as c, fonts } from '../theme';
 
-type Editor = { field: LifeEntry; mode: 'edit' | 'review'; initial: string; grantId?: string };
-const future = lifeChapters.find(chapter => chapter.id === 'future')!;
-const fieldTitle = (id: LifeTextField, locale: Locale) => future.items[lifeTextFields.indexOf(id)]![locale];
+type Editor = { field: LifeEntry; mode: 'edit' | 'review'; initial: LifeValue; grantId?: string };
+const fieldTitle = (id: LifeTextField, locale: Locale) => {const def=lifeField(id)!;return lifeChapters.find(c=>c.id===def.chapter)!.items[def.index]![locale];};
 let operationSequence = 0;
 
 /** Production screen. The only development-specific branch is truthful storage status copy. */
@@ -20,7 +21,7 @@ export function LifeNotesWorkspace({ locale, port, home = false, onOpenNotes, on
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [chapter, setChapter] = useState<string | null>('future');
-  const [editor, setEditor] = useState<Editor | null>(null), [value, setValue] = useState(''), [discardPrompt, setDiscardPrompt] = useState(false);
+  const [editor, setEditor] = useState<Editor | null>(null), [value, setValue] = useState<LifeValue>(''), [discardPrompt, setDiscardPrompt] = useState(false);
   const [delegating, setDelegating] = useState(false), [fields, setFields] = useState<LifeTextField[]>([]), [operator, setOperator] = useState('');
   const [revokePrompt, setRevokePrompt] = useState<string | null>(null);
   const generation = useRef(0), inFlight = useRef(false), readSequence = useRef(0), refreshPending = useRef(false);
@@ -92,10 +93,10 @@ export function LifeNotesWorkspace({ locale, port, home = false, onOpenNotes, on
     <Pressable testID={id} accessibilityRole="button" accessibilityState={{ disabled: disabled || busy }} disabled={disabled || busy} onPress={onPress}
       style={[s.button, primary && s.primary, (disabled || busy) && s.disabled]}><Text style={[s.buttonText, primary && s.primaryText]}>{t(ja, en)}</Text></Pressable>;
   const open = (field: LifeEntry, mode: 'edit' | 'review') => {
-    const initial = view?.owner ? field.confirmed : field.draft?.text ?? field.confirmed;
-    setEditor({ field: { ...field, draft: field.draft ? { ...field.draft } : null }, mode, initial, grantId:view?.delegation?.id }); setValue(initial); setDiscardPrompt(false); setError(''); setNotice(''); retry.current = null;
+    const initial = editableLifeValue(field.id,view?.owner ? field.confirmed : field.draft?.text ?? field.confirmed);
+    setEditor({ field: { ...field, confirmed:cloneLifeValue(field.confirmed), draft: field.draft ? { ...field.draft,text:cloneLifeValue(field.draft.text) } : null }, mode, initial, grantId:view?.delegation?.id }); setValue(cloneLifeValue(initial)); setDiscardPrompt(false); setError(''); setNotice(''); retry.current = null;
   };
-  const close = () => { if (busy) return; if (editor?.mode === 'edit' && value !== editor.initial) setDiscardPrompt(true); else { setEditor(null); setValue(''); retry.current = null; } };
+  const close = () => { if (busy) return; if (editor?.mode === 'edit' && JSON.stringify(value) !== JSON.stringify(editor.initial)) setDiscardPrompt(true); else { setEditor(null); setValue(''); retry.current = null; } };
   const errorMessage = error && <Text accessibilityRole="alert" style={s.error}>{errorCopy}</Text>;
   return <View>
     <View accessibilityElementsHidden={!!editor && !readBlocked} importantForAccessibility={editor && !readBlocked ? 'no-hide-descendants' : 'auto'} aria-hidden={!!editor && !readBlocked}>
@@ -114,23 +115,26 @@ export function LifeNotesWorkspace({ locale, port, home = false, onOpenNotes, on
         {!view.canEdit && <Text style={s.status}>{t('現在は閲覧のみです。本人の承認と利用資格をご確認ください。', 'Read-only for now. Check owner approval and eligibility.')}</Text>}
         {home ? <>
           <Text style={s.section}>{t('これからを考える', 'Looking ahead')}</Text>
-          {view.fields.slice(0, 3).map(f => <Pressable key={f.id} accessibilityRole="button" onPress={onOpenNotes} style={s.row}>
+          {view.fields.filter(f=>lifeField(f.id)?.chapter==='future').slice(0, 3).map(f => <Pressable key={f.id} accessibilityRole="button" onPress={onOpenNotes} style={s.row}>
             <Text style={s.rowTitle}>{fieldTitle(f.id, locale)}</Text><Text style={s.small}>{f.draft ? t('確認待ち', 'Awaiting review') : f.confirmed ? t('記入済み', 'Written') : t('これから', 'Not started')} →</Text></Pressable>)}
           {button('notes-open', 'わたしのノートを開く', 'Open my notes', onOpenNotes, true)}
         </> : <>
-          {(view.owner ? lifeChapters : [future]).map((section, i) => <View key={section.id}>
+          {lifeChapters.filter(section=>view.owner||view.fields.some(f=>lifeField(f.id)?.chapter===section.id)).map((section, i) => <View key={section.id}>
             <Pressable testID={`notes-chapter-${section.id}`} accessibilityRole="button" accessibilityState={{expanded:chapter===section.id}} aria-expanded={chapter===section.id}
               onPress={() => setChapter(chapter === section.id ? null : section.id)} style={s.chapter}>
               <Text style={s.rowTitle}>{view.owner ? `${i+1}｜` : ''}{section.title[locale]}</Text><Text style={s.buttonText}>{chapter===section.id?'−':'＋'}</Text>
             </Pressable>
-            {chapter===section.id && (section.id === 'future' ? view.fields.map(f => <View key={f.id} testID={`notes-field-${f.id}`} style={s.row}>
+            {chapter===section.id && lifeFields.filter(def=>def.chapter===section.id).sort((a,b)=>a.index-b.index).map(def => {
+              const f=view.fields.find(field=>field.id===def.id);
+              if (!f) return view.owner&&def.kind==='blocked' ? <View key={def.id} testID={`notes-blocked-${def.id}`} style={s.row}>
+                <Text style={s.rowTitle}>{fieldTitle(def.id,locale)}</Text><Text style={s.small}>{def.reason![locale]}</Text></View> : null;
+              return <View key={f.id} testID={`notes-field-${f.id}`} style={s.row}>
               <Text accessibilityRole="header" style={s.rowTitle}>{fieldTitle(f.id,locale)}</Text>
-              <Text style={s.body}>{f.confirmed || t('まだ記入されていません。', 'Nothing written yet.')}</Text>
+              <Text style={s.body}>{formatLifeValue(f.id,f.confirmed,locale) || t('まだ記入されていません。', 'Nothing written yet.')}</Text>
               {f.draft && <Text style={s.status}>{t('入力担当の下書きがあります。', 'A draft from your delegate is available.')}</Text>}
               <View style={s.actions}>{button(`notes-edit-${f.id}`, view.owner ? '記入・編集する' : '下書きを入力する', view.owner ? 'Write or edit' : 'Write a draft', () => open(f,'edit'), false, !view.canEdit)}
                 {view.owner && f.draft && button(`notes-review-${f.id}`, '下書きを確認する', 'Review draft', () => open(f,'review'))}</View>
-            </View>) : section.items.map(item => <View key={item.ja} style={s.row}><Text style={s.rowTitle}>{item[locale]}</Text>
-              <Text style={s.small}>{t('入力形式と安全な保存の確認中です。', 'Entry format and secure storage are being prepared.')}</Text></View>))}
+            </View>;})}
           </View>)}
           {view.owner && <View style={s.management}>
             <Text accessibilityRole="header" style={s.section}>{t('記入を手伝ってもらう', 'Get help writing')}</Text>
@@ -159,18 +163,17 @@ export function LifeNotesWorkspace({ locale, port, home = false, onOpenNotes, on
     <Modal visible={!!editor && !readBlocked} transparent animationType="slide" onRequestClose={close}>
       <View style={s.backdrop}><View style={s.sheet} accessibilityViewIsModal>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.sheetContent}>
-          <Text style={s.eyebrow}>{t('これからのこと','LOOKING AHEAD')}</Text>
+          <Text style={s.eyebrow}>{editor&&lifeChapters.find(ch=>ch.id===lifeField(editor.field.id)?.chapter)?.title[locale]}</Text>
           <Text accessibilityRole="header" style={s.editorTitle}>{editor && fieldTitle(editor.field.id,locale)}</Text>
           {editor?.mode==='edit' ? <>
             <Text style={s.small}>{view?.owner ? t('今わかることから、書いておけます。','Write what you know for now.') : t('下書きとして登録します。本人が確認するまで確定しません。','This remains a draft until the owner reviews and confirms it.')}</Text>
-            <TextInput testID="notes-input" accessibilityLabel={t('ノートの内容','Note content')} multiline maxLength={2000} value={value} onChangeText={next=>{setValue(next);retry.current=null;}}
-              editable={!busy} style={s.input} placeholder={t('ここに記入する','Write here')} placeholderTextColor={c.muted} textAlignVertical="top" autoCorrect={false} />
-            <Text style={s.count}>{value.length} / 2000</Text>
+            <Text style={s.small}>{t('医療情報・口座番号・詳細資産・パスワードは記入しないでください。ここから連絡やファイル送信は行いません。','Do not enter medical details, account numbers, detailed assets or passwords. This form does not contact anyone or send files.')}</Text>
+            <LifeNoteInput id={editor.field.id} value={value} locale={locale} disabled={busy} onChange={next=>{setValue(next);retry.current=null;}}/>
             {errorMessage}
-            {button('notes-save',busy?'反映中…':view?.owner?'この内容を保存する':'下書きを登録する',busy?'Saving…':view?.owner?'Save this content':'Submit draft',()=>void send({type:view?.owner?'save':'draft',fieldId:editor.field.id,text:value,confirmedRevision:editor.field.confirmedRevision,...(!view?.owner?{grantId:editor.grantId,draftRevision:editor.field.draft?.revision??0}:{})}),true,!value.trim() || !view?.canEdit)}
+            {button('notes-save',busy?'反映中…':view?.owner?'この内容を保存する':'下書きを登録する',busy?'Saving…':view?.owner?'Save this content':'Submit draft',()=>void send({type:view?.owner?'save':'draft',fieldId:editor.field.id,text:value,confirmedRevision:editor.field.confirmedRevision,...(!view?.owner?{grantId:editor.grantId,draftRevision:editor.field.draft?.revision??0}:{})}),true,normalizeLifeValue(editor.field.id,value)===undefined || !view?.canEdit)}
           </> : editor && <>
-            <Text style={s.label}>{t('現在の確定内容','Current confirmed content')}</Text><Text style={s.body}>{editor.field.confirmed || t('未記入','Not written')}</Text>
-            <View style={s.panel}><Text style={s.label}>{t('入力担当からの下書き','Draft from your delegate')} · v{editor.field.draft?.revision}</Text><Text style={s.body}>{editor.field.draft?.text}</Text></View>
+            <Text style={s.label}>{t('現在の確定内容','Current confirmed content')}</Text><Text style={s.body}>{formatLifeValue(editor.field.id,editor.field.confirmed,locale) || t('未記入','Not written')}</Text>
+            <View style={s.panel}><Text style={s.label}>{t('入力担当からの下書き','Draft from your delegate')} · v{editor.field.draft?.revision}</Text><Text style={s.body}>{formatLifeValue(editor.field.id,editor.field.draft?.text??'',locale)}</Text></View>
             <Text style={s.small}>{t('この内容で確定しても、家族や勤務先へ自動共有しません。','Confirming does not automatically share with family or your employer.')}</Text>
             {errorMessage}
             {button('notes-confirm','確認した内容で確定する','Confirm the reviewed content',()=>void send({type:'confirm',fieldId:editor.field.id,draftRevision:editor.field.draft?.revision,confirmedRevision:editor.field.confirmedRevision}),true,!view?.canEdit)}
@@ -201,6 +204,4 @@ const s=StyleSheet.create({
   panel:{backgroundColor:c.paperDeep,padding:16,marginVertical:14,gap:8},choice:{minHeight:48,paddingVertical:12},
   backdrop:{flex:1,backgroundColor:'rgba(35,41,34,.38)',justifyContent:'flex-end',alignItems:'center'},sheet:{width:'100%',maxWidth:480,maxHeight:'90%',backgroundColor:c.paper,borderTopLeftRadius:16,borderTopRightRadius:16},
   sheetContent:{padding:24,paddingBottom:32},editorTitle:{fontFamily:fonts.medium,fontSize:21,lineHeight:34,color:c.ink,marginVertical:16},
-  input:{fontFamily:fonts.regular,fontSize:16,lineHeight:29,color:c.ink,borderWidth:1,borderColor:c.line,borderRadius:4,minHeight:180,padding:16,marginTop:20,backgroundColor:c.white},
-  count:{fontFamily:fonts.regular,fontSize:11,lineHeight:22,color:c.muted,textAlign:'right',marginTop:6},
 });
